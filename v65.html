@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>找對的人 (V6.5 滿血版)</title>
+    <title>找對的人 V6.5 免費版</title>
+    <meta name="description" content="找對的人 - 精準姓名學分析工具，免費使用，未來將上架手機 APP">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 html2canvas 函式庫，用於將結果轉換為圖片 -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #111827; color: white; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: white; }
         .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
         .stroke-input { width: 40px; text-align: center; background: rgba(0,0,0,0.6); color: #fbbf24; border: 1px solid #4b5563; border-radius: 6px; font-weight: bold; }
         .char-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block; }
@@ -17,19 +17,14 @@
         .tag-trad { background: #10b981; color: white; }
         .tag-ext { background: #8b5cf6; color: white; box-shadow: 0 0 8px #8b5cf6; } 
         .tag-unknown { background: #6b7280; color: white; }
-        
-        /* 檔案上傳隱藏 */
         #fileInput { display: none; }
         .loading-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-
-        /* 爭議字彩虹閃爍特效 */
         .tag-rainbow { 
             background: linear-gradient(90deg, #ff0000, #ff7f00, #00b300, #0000ff, #8b00ff, #ff0000);
             background-size: 200% 200%;
             animation: rainbowBg 2s linear infinite;
-            color: white; 
-            font-weight: bold;
+            color: white; font-weight: bold;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
         }
         .rainbow-flash { animation: rainbowBorder 1.5s linear infinite; }
@@ -43,14 +38,63 @@
             83% { border-color: #8b00ff; box-shadow: 0 0 10px #8b00ff; }
             100% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
         }
+        /* APP 預告橫幅動畫 */
+        .app-banner {
+            background: linear-gradient(135deg, #1e40af, #7c3aed, #db2777);
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* 場域卡片 hover */
+        .scene-card {
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+        .scene-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.15);
+        }
+        /* 結果名字對名字 */
+        .vs-text {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+        /* LINE 綠 */
+        .btn-line { background: #06C755; }
+        .btn-line:hover { background: #05b34d; }
+        /* Telegram 藍 */
+        .btn-telegram { background: #0088cc; }
+        .btn-telegram:hover { background: #0077b5; }
+        /* 教學影片區 */
+        .video-placeholder {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 2px dashed #475569;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 flex flex-col items-center">
 
-    <header class="w-full max-w-md flex justify-between items-center mb-6">
+    <!-- ========== APP 預告橫幅 ========== -->
+    <div class="app-banner w-full max-w-md rounded-xl px-4 py-2.5 mb-4 flex items-center justify-center gap-2 text-white text-sm font-bold shadow-lg">
+        <span>📱</span>
+        <span>即將上架手機 APP — 敬請期待！</span>
+        <span class="text-xs opacity-80 ml-1">iOS / Android</span>
+    </div>
+
+    <!-- ========== Header ========== -->
+    <header class="w-full max-w-md flex justify-between items-center mb-4">
         <div>
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 tracking-wider">找對的人</h1>
-            <div class="text-xs text-purple-400 font-bold tracking-widest mt-1">V6.5 滿血版</div>
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 tracking-wider">找對的人</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-purple-400 font-bold tracking-widest">V6.5</span>
+                <span class="text-[10px] bg-green-600 text-white px-2 py-0.5 rounded-full font-bold">免費版</span>
+            </div>
         </div>
         <div class="flex items-center gap-2">
             <span id="dbCount" class="text-xs bg-gray-800 px-2 py-1 rounded text-purple-400 font-mono">滿血版: 8.1萬字</span>
@@ -60,7 +104,50 @@
         </div>
     </header>
 
-    <!-- 1. 我是誰 (User) -->
+    <!-- ========== 使用場域 ========== -->
+    <div class="w-full max-w-md mb-4">
+        <div class="text-xs text-gray-400 mb-2 text-center font-bold tracking-wider">▼ 適用場域 ▼</div>
+        <div class="grid grid-cols-3 gap-2">
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">🏥</div>
+                <div class="text-[11px] text-gray-300 font-bold">看醫生</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">💰</div>
+                <div class="text-[11px] text-gray-300 font-bold">找理專</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">👔</div>
+                <div class="text-[11px] text-gray-300 font-bold">找老闆</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">🏠</div>
+                <div class="text-[11px] text-gray-300 font-bold">找室友</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">⚖️</div>
+                <div class="text-[11px] text-gray-300 font-bold">找律師</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">📈</div>
+                <div class="text-[11px] text-gray-300 font-bold">找股票</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">🏢</div>
+                <div class="text-[11px] text-gray-300 font-bold">找仲介</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">💍</div>
+                <div class="text-[11px] text-gray-300 font-bold">找伴侶</div>
+            </div>
+            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
+                <div class="text-2xl mb-1">❤️</div>
+                <div class="text-[11px] text-gray-300 font-bold">找男女友</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 1. 我是誰 (User) ========== -->
     <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-yellow-500">
         <div class="flex justify-between items-center mb-3">
             <h3 class="font-bold text-yellow-400 text-lg flex items-center">😎 我是誰 (User)</h3>
@@ -73,13 +160,9 @@
                    class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-yellow-500 focus:outline-none transition-colors"
                    oninput="autoDetect('u')">
         </div>
-        
-        <!-- 動態筆劃區 -->
         <div class="bg-gray-900/40 p-3 rounded-xl">
             <div class="flex justify-center gap-3 flex-wrap" id="uStrokesArea"></div>
         </div>
-        
-        <!-- 五格預覽 -->
         <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
             <div>天<span id="uTian" class="text-yellow-400 font-bold ml-1">?</span></div>
             <div>人<span id="uRen" class="text-yellow-400 font-bold ml-1">?</span></div>
@@ -89,8 +172,8 @@
         </div>
     </div>
 
-    <!-- 2. 對方是 (Target) -->
-    <div class="glass w-full max-w-md p-5 mb-8 relative border-l-4 border-blue-500">
+    <!-- ========== 2. 對方是 (Target) ========== -->
+    <div class="glass w-full max-w-md p-5 mb-6 relative border-l-4 border-blue-500">
         <div class="flex justify-between items-center mb-3">
             <h3 class="font-bold text-blue-400 text-lg flex items-center">🎯 對方是 (Target)</h3>
             <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
@@ -102,12 +185,9 @@
                    class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-blue-500 focus:outline-none transition-colors"
                    oninput="autoDetect('t')">
         </div>
-
         <div class="bg-gray-900/40 p-3 rounded-xl">
             <div class="flex justify-center gap-3 flex-wrap" id="tStrokesArea"></div>
         </div>
-
-        <!-- 五格預覽 -->
         <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
             <div>天<span id="tTian" class="text-blue-400 font-bold ml-1">?</span></div>
             <div>人<span id="tRen" class="text-blue-400 font-bold ml-1">?</span></div>
@@ -117,15 +197,38 @@
         </div>
     </div>
 
-    <!-- 按鈕 -->
-    <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-8 flex justify-center items-center gap-2">
+    <!-- ========== 鑑定按鈕 ========== -->
+    <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-6 flex justify-center items-center gap-2">
         <span>🔍</span> 啟動精準鑑定
     </button>
 
-    <!-- 結果區 -->
+    <!-- ========== 結果區 ========== -->
     <div id="resultArea" class="hidden w-full max-w-md animate-fade-in-up"></div>
     
-    <!-- 隱藏的分享用畫布 (Canvas) -->
+    <!-- ========== 教學影片區 ========== -->
+    <div class="w-full max-w-md mt-6 mb-6">
+        <div class="text-center mb-3">
+            <h3 class="text-lg font-bold text-amber-400 flex items-center justify-center gap-2">🎬 軟體教學影片</h3>
+            <p class="text-xs text-gray-400 mt-1">3 分鐘學會使用「找對的人」</p>
+        </div>
+        <div class="video-placeholder rounded-xl overflow-hidden" style="aspect-ratio: 16/9;">
+            <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                <div class="text-5xl mb-3">▶️</div>
+                <div class="text-sm font-bold">教學影片即將上線</div>
+                <div class="text-xs mt-1 opacity-60">敬請期待</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Footer ========== -->
+    <footer class="w-full max-w-md text-center py-6 border-t border-gray-800 mt-4">
+        <div class="text-xs text-gray-500">
+            <p>找對的人 V6.5 免費版 | 康熙字典 8.1 萬字庫</p>
+            <p class="mt-1">📱 手機 APP 即將上架 iOS / Android</p>
+            <p class="mt-1 opacity-50">&copy; 2025 找對的人 App. All rights reserved.</p>
+        </div>
+    </footer>
+
     <div id="shareCanvasArea" class="hidden"></div>
 
     <script>
@@ -175,9 +278,7 @@
             '毓': [13, 14], '沛': [8, 9], '慈': [13, 14], '蕭': [18, 19]
         };
 
-        // --- V6.5: 字庫已內建，無需手動匯入 ---
-
-                // --- 查詢邏輯 ---
+        // --- 查詢邏輯 ---
         function getCharInfo(char) {
             if (dualStrokesMap[char]) return { strokes: dualStrokesMap[char][0], origin: char, type: 'dual', alt: dualStrokesMap[char][1] };
             if (externalDB[char]) return { strokes: externalDB[char], origin: char, type: 'ext' };
@@ -191,17 +292,13 @@
             const name = document.getElementById(prefix + 'Name').value.trim();
             const area = document.getElementById(prefix + 'StrokesArea');
             area.innerHTML = '';
-            
             if (!name) { updatePreview(prefix); return; }
-
             let html = '';
             for (let i = 0; i < name.length; i++) {
                 const char = name[i];
                 const info = getCharInfo(char);
                 const strokeVal = info.strokes > 0 ? info.strokes : '';
-                
                 let tagClass = 'tag-unknown'; let tagText = '未知'; let inputClass = 'stroke-input';
-                
                 if (info.type === 'dual') { 
                     tagClass = 'tag-rainbow'; tagText = `爭議(${info.strokes}或${info.alt})`; 
                     inputClass = 'stroke-input rainbow-flash text-white'; 
@@ -209,7 +306,6 @@
                 else if (info.type === 'ext') { tagClass = 'tag-ext'; tagText = '頂級庫'; }
                 else if (info.type === 'simp') { tagClass = 'tag-simp'; tagText = `簡→${info.origin}`; }
                 else if (info.type === 'trad') { tagClass = 'tag-trad'; tagText = '內建庫'; }
-
                 html += `
                     <div class="flex flex-col items-center">
                         <span class="text-lg text-white mb-1">${char}</span>
@@ -236,43 +332,22 @@
                 return;
             }
             const strokes = Array.from(inputs).map(inp => parseInt(inp.value) || 0);
-            
-            // 確認是否勾選為複姓
             const isDouble = document.getElementById(prefix + 'Double').checked;
-
             if (strokes.some(s => s === 0)) return;
-
-            // 動態陣列切割：依據是否為複姓，決定姓氏的字數
             const sLen = isDouble ? 2 : 1;
-            if (strokes.length < sLen) return; // 字數不足以構成複姓
-
+            if (strokes.length < sLen) return;
             const surnameStrokes = strokes.slice(0, sLen); 
             const nameStrokes = strokes.slice(sLen);
-
-            // 天格：單姓加1，複姓相加
             let heaven = surnameStrokes.length === 1 ? surnameStrokes[0] + 1 : surnameStrokes[0] + surnameStrokes[1];
-            
-            // 人格：姓氏最後一字 + 名字第一字
             let person = surnameStrokes[surnameStrokes.length-1] + (nameStrokes[0] || 0);
-            
-            // 地格：單名加1，複名相加
             let earth = 0;
-            if (nameStrokes.length === 0) {
-                earth = 0;
-            } else if (nameStrokes.length === 1) {
-                earth = nameStrokes[0] + 1; // 系統自動判斷單名並 +1
-            } else {
-                earth = nameStrokes.reduce((a,b)=>a+b, 0);
-            }
-
-            // 總格：全部相加
+            if (nameStrokes.length === 0) { earth = 0; }
+            else if (nameStrokes.length === 1) { earth = nameStrokes[0] + 1; }
+            else { earth = nameStrokes.reduce((a,b)=>a+b, 0); }
             let total = strokes.reduce((a,b)=>a+b, 0);
-            
-            // 萬用外格公式：總格 - 人格 + (單姓補1) + (單名補1)
             let outer = total - person;
             if (surnameStrokes.length === 1) outer += 1;
             if (nameStrokes.length === 1) outer += 1;
-
             document.getElementById(prefix + 'Tian').innerText = heaven;
             document.getElementById(prefix + 'Ren').innerText = person;
             document.getElementById(prefix + 'Di').innerText = earth;
@@ -289,6 +364,9 @@
         function calculateAndScan() {
             updatePreview('u'); updatePreview('t');
             
+            const uName = document.getElementById('uName').value.trim();
+            const tName = document.getElementById('tName').value.trim();
+            
             const uRen = parseInt(document.getElementById('uRen').innerText);
             const tRen = parseInt(document.getElementById('tRen').innerText);
             
@@ -297,10 +375,12 @@
             const uDi = parseInt(document.getElementById('uDi').innerText);
             const uZong = parseInt(document.getElementById('uZong').innerText);
             const uWai = parseInt(document.getElementById('uWai').innerText);
+            const uTian = parseInt(document.getElementById('uTian').innerText);
             
             const tDi = parseInt(document.getElementById('tDi').innerText);
             const tZong = parseInt(document.getElementById('tZong').innerText);
             const tWai = parseInt(document.getElementById('tWai').innerText);
+            const tTian = parseInt(document.getElementById('tTian').innerText);
 
             const uRenH = reduce(uRen); const uDiH = reduce(uDi); const uZongH = reduce(uZong);
             const tRenH = reduce(tRen); const tDiH = reduce(tDi); const tZongH = reduce(tZong);
@@ -315,28 +395,81 @@
             else if (uRenH === tDiH) { res = { type: 'indirect_noble', title: '你是潛在貴人', icon: '✨', color: 'border-purple-500 bg-purple-900', desc: '化氣相同，你會在不知不覺中幫助到他。' }; }
             else if (tZongH === uDiH || uZongH === tDiH) { res = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'border-gray-500 bg-gray-700', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
 
+            // 產生分享文字
+            const shareText = `【找對的人 鑑定報告】\n${uName} ↔ ${tName}\n結果：${res.title}\n${res.desc}\n\n免費測試：https://samlin0320-bee.github.io/find-the-right-one/v65.html`;
+
             const area = document.getElementById('resultArea');
-            // 注意：這裡我加入了一個 id="captureTarget" 以及分享按鈕
             area.innerHTML = `
-                <div id="captureTarget" class="glass p-6 text-center border-t-8 ${res.color} shadow-2xl transform transition-all hover:scale-105 bg-[#111827]">
-                    <div class="text-7xl mb-4 filter drop-shadow-lg animate-bounce">${res.icon}</div>
-                    <h2 class="text-3xl font-bold mb-2 text-white">${res.title}</h2>
-                    <p class="text-gray-200 text-lg leading-relaxed">${res.desc}</p>
-                    <div class="mt-6 pt-4 border-t border-gray-600 text-xs text-gray-400 font-mono">
-                        系統判定: User[人${uRen}/地${uDi}/外${uWai}/總${uZong}] vs Target[人${tRen}/地${tDi}/外${tWai}/總${tZong}]
+                <div id="captureTarget" class="glass p-6 text-center border-t-8 ${res.color} shadow-2xl bg-[#0f172a]" style="border-radius: 16px;">
+                    <!-- 姓名 vs 姓名 -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                            <span class="text-2xl font-black text-yellow-400">${uName || '我'}</span>
+                            <span class="vs-text text-2xl font-black">VS</span>
+                            <span class="text-2xl font-black text-blue-400">${tName || '對方'}</span>
+                        </div>
                     </div>
+                    
+                    <div class="text-6xl mb-3 filter drop-shadow-lg">${res.icon}</div>
+                    <h2 class="text-2xl font-black mb-2 text-white">${res.title}</h2>
+                    <p class="text-gray-200 text-base leading-relaxed px-2">${res.desc}</p>
+                    
+                    <!-- 五格數據 -->
+                    <div class="mt-5 pt-4 border-t border-gray-700">
+                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-400 font-mono">
+                            <div class="text-left">
+                                <span class="text-yellow-500">${uName || 'User'}</span>
+                                <span class="ml-1">天${uTian} 人${uRen} 地${uDi} 外${uWai} 總${uZong}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-blue-500">${tName || 'Target'}</span>
+                                <span class="ml-1">天${tTian} 人${tRen} 地${tDi} 外${tWai} 總${tZong}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 水印 -->
-                    <div class="mt-2 text-[10px] text-gray-500 opacity-50">@找對的人 App - 精準姓名學分析</div>
+                    <div class="mt-3 text-[10px] text-gray-600">找對的人 V6.5 免費版 | 康熙字典 8.1 萬字庫</div>
                 </div>
                 
-                <button onclick="shareResult()" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-lg shadow-lg flex justify-center items-center gap-2 transition-all">
-                    <span>📸</span> 儲存結果圖片分享給朋友
+                <!-- 分享按鈕區 -->
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <button onclick="shareToLine()" class="btn-line text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                        LINE 分享
+                    </button>
+                    <button onclick="shareToTelegram()" class="btn-telegram text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                        Telegram 分享
+                    </button>
+                </div>
+                
+                <button onclick="shareResult()" class="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                    <span>📸</span> 儲存結果圖片
                 </button>
             `;
             area.classList.remove('hidden');
+            
+            // 儲存分享文字到全域變數
+            window._shareText = shareText;
+            window._shareUrl = 'https://samlin0320-bee.github.io/find-the-right-one/v65.html';
         }
 
-        // --- 新增：截圖分享功能 ---
+        // --- LINE 分享 ---
+        function shareToLine() {
+            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
+            const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=500,height=600');
+        }
+
+        // --- Telegram 分享 ---
+        function shareToTelegram() {
+            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
+            const url = `https://t.me/share/url?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=500,height=600');
+        }
+
+        // --- 截圖分享功能 ---
         function shareResult() {
             const captureTarget = document.getElementById('captureTarget');
             const btn = event.currentTarget;
@@ -345,29 +478,22 @@
             btn.innerHTML = "<span>⏳</span> 正在產生精美圖卡...";
             btn.disabled = true;
 
-            // 使用 html2canvas 將指定的 div 轉成 canvas
             html2canvas(captureTarget, {
-                backgroundColor: "#111827", // 保持深色背景
-                scale: 2 // 提高截圖畫質
+                backgroundColor: "#0f172a",
+                scale: 2
             }).then(canvas => {
-                // 將 canvas 轉為圖片 URL
                 const imgUrl = canvas.toDataURL("image/png");
-                
-                // 建立一個隱藏的下載連結並觸發點擊
                 const downloadLink = document.createElement("a");
                 downloadLink.href = imgUrl;
-                downloadLink.download = "找對的人_鑑定報告.png"; // 下載的檔名
+                const uName = document.getElementById('uName').value.trim() || '我';
+                const tName = document.getElementById('tName').value.trim() || '對方';
+                downloadLink.download = `找對的人_${uName}_vs_${tName}.png`;
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
 
-                btn.innerHTML = "<span>✅</span> 圖片已儲存！快去 LINE 分享吧";
-                
-                // 3秒後恢復按鈕狀態
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 3000);
+                btn.innerHTML = "<span>✅</span> 圖片已儲存！";
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
             }).catch(err => {
                 console.error("截圖失敗:", err);
                 alert("產生圖片失敗，請直接使用手機截圖功能。");
