@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>找對的人 (V6.3 社群分享版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 html2canvas 函式庫，用於將結果轉換為圖片 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #111827; color: white; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .stroke-input { width: 40px; text-align: center; background: rgba(0,0,0,0.6); color: #fbbf24; border: 1px solid #4b5563; border-radius: 6px; font-weight: bold; }
+        .char-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block; }
+        .tag-simp { background: #ef4444; color: white; }
+        .tag-trad { background: #10b981; color: white; }
+        .tag-ext { background: #8b5cf6; color: white; box-shadow: 0 0 8px #8b5cf6; } 
+        .tag-unknown { background: #6b7280; color: white; }
+        
+        /* 檔案上傳隱藏 */
+        #fileInput { display: none; }
+        .loading-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* 爭議字彩虹閃爍特效 */
+        .tag-rainbow { 
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #00b300, #0000ff, #8b00ff, #ff0000);
+            background-size: 200% 200%;
+            animation: rainbowBg 2s linear infinite;
+            color: white; 
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+        }
+        .rainbow-flash { animation: rainbowBorder 1.5s linear infinite; }
+        @keyframes rainbowBg { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        @keyframes rainbowBorder {
+            0% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            16% { border-color: #ff7f00; box-shadow: 0 0 10px #ff7f00; }
+            33% { border-color: #ffff00; box-shadow: 0 0 10px #ffff00; }
+            50% { border-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+            66% { border-color: #0000ff; box-shadow: 0 0 10px #0000ff; }
+            83% { border-color: #8b00ff; box-shadow: 0 0 10px #8b00ff; }
+            100% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center">
+
+    <header class="w-full max-w-md flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 tracking-wider">找對的人</h1>
+            <div class="text-xs text-purple-400 font-bold tracking-widest mt-1">V6.3 社群分享版</div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="dbCount" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300 font-mono">內建: 6000字</span>
+            <button onclick="document.getElementById('fileInput').click()" id="importBtn" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg transition flex items-center gap-1">
+                <span>📂</span> <span id="btnText">匯入8萬字庫</span>
+            </button>
+            <input type="file" id="fileInput" accept=".json" onchange="loadExternalDB(this)">
+        </div>
+    </header>
+
+    <!-- 1. 我是誰 (User) -->
+    <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-yellow-500">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-yellow-400 text-lg flex items-center">😎 我是誰 (User)</h3>
+            <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
+                <input type="checkbox" id="uDouble" class="mr-1 w-4 h-4 accent-yellow-500 rounded"> 複姓 (前兩字為姓)
+            </label>
+        </div>
+        <div class="relative mb-4">
+            <input type="text" id="uName" placeholder="測試輸入：歐陽菲菲 或 蕭育沛" 
+                   class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-yellow-500 focus:outline-none transition-colors"
+                   oninput="autoDetect('u')">
+        </div>
+        
+        <!-- 動態筆劃區 -->
+        <div class="bg-gray-900/40 p-3 rounded-xl">
+            <div class="flex justify-center gap-3 flex-wrap" id="uStrokesArea"></div>
+        </div>
+        
+        <!-- 五格預覽 -->
+        <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
+            <div>天<span id="uTian" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>人<span id="uRen" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>地<span id="uDi" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>外<span id="uWai" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>總<span id="uZong" class="text-yellow-400 font-bold ml-1">?</span></div>
+        </div>
+    </div>
+
+    <!-- 2. 對方是 (Target) -->
+    <div class="glass w-full max-w-md p-5 mb-8 relative border-l-4 border-blue-500">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-blue-400 text-lg flex items-center">🎯 對方是 (Target)</h3>
+            <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
+                <input type="checkbox" id="tDouble" class="mr-1 w-4 h-4 accent-blue-500 rounded"> 複姓 (前兩字為姓)
+            </label>
+        </div>
+        <div class="relative mb-4">
+            <input type="text" id="tName" placeholder="輸入姓名 (支援簡繁)" 
+                   class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-blue-500 focus:outline-none transition-colors"
+                   oninput="autoDetect('t')">
+        </div>
+
+        <div class="bg-gray-900/40 p-3 rounded-xl">
+            <div class="flex justify-center gap-3 flex-wrap" id="tStrokesArea"></div>
+        </div>
+
+        <!-- 五格預覽 -->
+        <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
+            <div>天<span id="tTian" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>人<span id="tRen" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>地<span id="tDi" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>外<span id="tWai" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>總<span id="tZong" class="text-blue-400 font-bold ml-1">?</span></div>
+        </div>
+    </div>
+
+    <!-- 按鈕 -->
+    <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-8 flex justify-center items-center gap-2">
+        <span>🔍</span> 啟動精準鑑定
+    </button>
+
+    <!-- 結果區 -->
+    <div id="resultArea" class="hidden w-full max-w-md animate-fade-in-up"></div>
+    
+    <!-- 隱藏的分享用畫布 (Canvas) -->
+    <div id="shareCanvasArea" class="hidden"></div>
+
+    <script>
+        // ==========================================
+        //  資料庫系統
+        // ==========================================
+        let externalDB = {}; 
+
+        // 核心字庫 (預設 6000 字精簡版演示)
+        const coreDB = {
+            '一':1, '二':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9, '十':10,
+            '陳':16, '林':8, '黃':12, '張':11, '李':7, '王':4, '吳':7, '劉':15, '蔡':17, '楊':13,
+            '許':11, '鄭':19, '郭':15, '洪':10, '曾':12, '邱':12, '廖':14, '徐':10,
+            '大':3, '小':3, '天':4, '文':4, '正':5, '永':5, '志':7, '宏':7, '君':7, '明':8,
+            '怡':9, '俊':9, '建':9, '美':9, '家':10, '淑':12, '婷':12, '華':14, '豪':14, '銘':14,
+            '歐':15, '陽':17, '司':5, '馬':10, '諸':16, '葛':15, '菲':14, '炎':8, '相':9, '如':6,
+            '王':5, '玉':5, '氵':4, '水':4, '忄':4, '心':4, '扌':4, '手':4, '艹':6, '艸':6, 
+            '月':6, '肉':6, '辶':7, '辵':7, '阝':8 
+        };
+
+        // 簡體字庫
+        const simpMap = {
+            '陈': [16, '陳'], '张': [11, '張'], '刘': [15, '劉'], '黄': [12, '黃'], '杨': [13, '楊'],
+            '赵': [14, '趙'], '周': [8, '周'], '吴': [7, '吳'], '徐': [10, '徐'], '孙': [10, '孫'],
+            '马': [10, '馬'], '朱': [6, '朱'], '胡': [11, '胡'], '郭': [15, '郭'], '林': [8, '林'],
+            '龙': [16, '龍'], '华': [14, '華'], '国': [11, '國'], '强': [11, '強'], '伟': [11, '偉']
+        };
+
+        // 爭議字庫 (優先攔截 + 彩虹特效)
+        const dualStrokesMap = {
+            '育': [9, 10], '卉': [5, 6], '妍': [8, 9], '屏': [10, 11],
+            '毓': [13, 14], '沛': [8, 9], '慈': [13, 14], '蕭': [18, 19]
+        };
+
+        // --- 檔案載入邏輯 (支援 8.1 萬字 kangxi_complete.json) ---
+        function loadExternalDB(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const btnText = document.getElementById('btnText');
+            const originalText = btnText.innerText;
+            btnText.innerText = "解析中...";
+            document.getElementById('importBtn').classList.add('loading-pulse');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    let loadedCount = 0;
+                    externalDB = {}; 
+                    
+                    let dataArray = null;
+                    if (Array.isArray(json)) dataArray = json;
+                    else if (json.data && Array.isArray(json.data)) dataArray = json.data;
+                    else if (json.characters && Array.isArray(json.characters)) dataArray = json.characters;
+                    else {
+                        for (let key in json) {
+                            if (Array.isArray(json[key]) && json[key].length > 1000) {
+                                dataArray = json[key]; break;
+                            }
+                        }
+                    }
+
+                    if (dataArray) {
+                        dataArray.forEach(item => {
+                            if (item.character && item.strokes !== undefined) {
+                                externalDB[item.character] = parseInt(item.strokes);
+                                loadedCount++;
+                            }
+                        });
+                    }
+
+                    if (loadedCount > 0) {
+                        const countStr = loadedCount > 10000 ? (loadedCount/10000).toFixed(1) + "萬" : loadedCount;
+                        document.getElementById('dbCount').innerText = `滿血版: ${countStr}字`;
+                        document.getElementById('dbCount').classList.add('text-purple-400');
+                        btnText.innerText = "字庫已載入";
+                        document.getElementById('importBtn').classList.remove('bg-purple-600', 'loading-pulse');
+                        document.getElementById('importBtn').classList.add('bg-green-600');
+                        
+                        autoDetect('u'); autoDetect('t');
+                        alert(`✅ 讀取成功！已將 ${loadedCount.toLocaleString()} 個康熙字典資料匯入記憶體。`);
+                    } else {
+                        throw new Error("找不到有效的文字與筆劃陣列");
+                    }
+                } catch (err) {
+                    btnText.innerText = originalText;
+                    document.getElementById('importBtn').classList.remove('loading-pulse');
+                    alert("❌ 讀取失敗: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- 查詢邏輯 ---
+        function getCharInfo(char) {
+            if (dualStrokesMap[char]) return { strokes: dualStrokesMap[char][0], origin: char, type: 'dual', alt: dualStrokesMap[char][1] };
+            if (externalDB[char]) return { strokes: externalDB[char], origin: char, type: 'ext' };
+            if (simpMap[char]) return { strokes: simpMap[char][0], origin: simpMap[char][1], type: 'simp' };
+            if (coreDB[char]) return { strokes: coreDB[char], origin: char, type: 'trad' };
+            return { strokes: 0, origin: char, type: 'unknown' };
+        }
+
+        // --- UI 運算與渲染 ---
+        function autoDetect(prefix) {
+            const name = document.getElementById(prefix + 'Name').value.trim();
+            const area = document.getElementById(prefix + 'StrokesArea');
+            area.innerHTML = '';
+            
+            if (!name) { updatePreview(prefix); return; }
+
+            let html = '';
+            for (let i = 0; i < name.length; i++) {
+                const char = name[i];
+                const info = getCharInfo(char);
+                const strokeVal = info.strokes > 0 ? info.strokes : '';
+                
+                let tagClass = 'tag-unknown'; let tagText = '未知'; let inputClass = 'stroke-input';
+                
+                if (info.type === 'dual') { 
+                    tagClass = 'tag-rainbow'; tagText = `爭議(${info.strokes}或${info.alt})`; 
+                    inputClass = 'stroke-input rainbow-flash text-white'; 
+                }
+                else if (info.type === 'ext') { tagClass = 'tag-ext'; tagText = '頂級庫'; }
+                else if (info.type === 'simp') { tagClass = 'tag-simp'; tagText = `簡→${info.origin}`; }
+                else if (info.type === 'trad') { tagClass = 'tag-trad'; tagText = '內建庫'; }
+
+                html += `
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg text-white mb-1">${char}</span>
+                        <input type="number" id="${prefix}S_val_${i}" class="${inputClass}" value="${strokeVal}" placeholder="?">
+                        <span class="char-tag ${tagClass}">${tagText}</span>
+                    </div>
+                `;
+            }
+            area.innerHTML = html;
+            updatePreview(prefix);
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('stroke-input') || e.target.type === 'checkbox') {
+                const prefix = e.target.id.startsWith('u') ? 'u' : 't';
+                updatePreview(prefix);
+            }
+        });
+
+        function updatePreview(prefix) {
+            const inputs = document.querySelectorAll(`[id^="${prefix}S_val_"]`);
+            if (inputs.length === 0) {
+                ['Tian','Ren','Di','Wai','Zong'].forEach(k => document.getElementById(prefix + k).innerText = "?");
+                return;
+            }
+            const strokes = Array.from(inputs).map(inp => parseInt(inp.value) || 0);
+            
+            // 確認是否勾選為複姓
+            const isDouble = document.getElementById(prefix + 'Double').checked;
+
+            if (strokes.some(s => s === 0)) return;
+
+            // 動態陣列切割：依據是否為複姓，決定姓氏的字數
+            const sLen = isDouble ? 2 : 1;
+            if (strokes.length < sLen) return; // 字數不足以構成複姓
+
+            const surnameStrokes = strokes.slice(0, sLen); 
+            const nameStrokes = strokes.slice(sLen);
+
+            // 天格：單姓加1，複姓相加
+            let heaven = surnameStrokes.length === 1 ? surnameStrokes[0] + 1 : surnameStrokes[0] + surnameStrokes[1];
+            
+            // 人格：姓氏最後一字 + 名字第一字
+            let person = surnameStrokes[surnameStrokes.length-1] + (nameStrokes[0] || 0);
+            
+            // 地格：單名加1，複名相加
+            let earth = 0;
+            if (nameStrokes.length === 0) {
+                earth = 0;
+            } else if (nameStrokes.length === 1) {
+                earth = nameStrokes[0] + 1; // 系統自動判斷單名並 +1
+            } else {
+                earth = nameStrokes.reduce((a,b)=>a+b, 0);
+            }
+
+            // 總格：全部相加
+            let total = strokes.reduce((a,b)=>a+b, 0);
+            
+            // 萬用外格公式：總格 - 人格 + (單姓補1) + (單名補1)
+            let outer = total - person;
+            if (surnameStrokes.length === 1) outer += 1;
+            if (nameStrokes.length === 1) outer += 1;
+
+            document.getElementById(prefix + 'Tian').innerText = heaven;
+            document.getElementById(prefix + 'Ren').innerText = person;
+            document.getElementById(prefix + 'Di').innerText = earth;
+            document.getElementById(prefix + 'Wai').innerText = outer;
+            document.getElementById(prefix + 'Zong').innerText = total;
+        }
+
+        function reduce(num) {
+            if (num === 0) return 0;
+            while (num > 9) { num = num.toString().split('').reduce((a,b)=>parseInt(a)+parseInt(b), 0); }
+            return num;
+        }
+
+        function calculateAndScan() {
+            updatePreview('u'); updatePreview('t');
+            
+            const uRen = parseInt(document.getElementById('uRen').innerText);
+            const tRen = parseInt(document.getElementById('tRen').innerText);
+            
+            if (isNaN(uRen) || isNaN(tRen)) { alert("請確保所有筆劃都已輸入正確喔！"); return; }
+
+            const uDi = parseInt(document.getElementById('uDi').innerText);
+            const uZong = parseInt(document.getElementById('uZong').innerText);
+            const uWai = parseInt(document.getElementById('uWai').innerText);
+            
+            const tDi = parseInt(document.getElementById('tDi').innerText);
+            const tZong = parseInt(document.getElementById('tZong').innerText);
+            const tWai = parseInt(document.getElementById('tWai').innerText);
+
+            const uRenH = reduce(uRen); const uDiH = reduce(uDi); const uZongH = reduce(uZong);
+            const tRenH = reduce(tRen); const tDiH = reduce(tDi); const tZongH = reduce(tZong);
+
+            let res = { type: 'normal', title: '泛泛之交', icon: '🍵', color: 'border-gray-500 bg-gray-800', desc: '緣分平淡，無明顯生剋。' };
+
+            if (tRen === uDi) { res = { type: 'noble', title: '對方是對的人 (貴人)', icon: '👼', color: 'border-yellow-500 bg-yellow-900', desc: `恭喜！這是對的人。對方的思想(人格${tRen})直接拉拔你的基礎(地格${uDi})，是來成就你的。` }; }
+            else if (uRen === tDi) { res = { type: 'noble', title: '你是對方的貴人', icon: '🤝', color: 'border-yellow-500 bg-yellow-900', desc: `你的格局(人格${uRen})在對方之上，你會想幫他。這是一段良善的緣分。` }; }
+            else if (tZong === uDi) { res = { type: 'villain', title: '這不是對的人 (小人)', icon: '💣', color: 'border-red-500 bg-red-900', desc: `警報！這可能不是對的人。對方的結果(總格${tZong})會拖累你的基礎(地格${uDi})。` }; }
+            else if (uZong === tDi) { res = { type: 'villain', title: '相處需謹慎 (小人)', icon: '⚠️', color: 'border-red-500 bg-red-900', desc: `你們氣場相剋，你可能會無意間拖累他。彼此相處會比較辛苦。` }; }
+            else if (tRenH === uDiH) { res = { type: 'indirect_noble', title: '潛在的對的人', icon: '✨', color: 'border-purple-500 bg-purple-900', desc: '雖然數字不同，但化氣相同。是潛力股，會暗中給你資源。' }; }
+            else if (uRenH === tDiH) { res = { type: 'indirect_noble', title: '你是潛在貴人', icon: '✨', color: 'border-purple-500 bg-purple-900', desc: '化氣相同，你會在不知不覺中幫助到他。' }; }
+            else if (tZongH === uDiH || uZongH === tDiH) { res = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'border-gray-500 bg-gray-700', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
+
+            const area = document.getElementById('resultArea');
+            // 注意：這裡我加入了一個 id="captureTarget" 以及分享按鈕
+            area.innerHTML = `
+                <div id="captureTarget" class="glass p-6 text-center border-t-8 ${res.color} shadow-2xl transform transition-all hover:scale-105 bg-[#111827]">
+                    <div class="text-7xl mb-4 filter drop-shadow-lg animate-bounce">${res.icon}</div>
+                    <h2 class="text-3xl font-bold mb-2 text-white">${res.title}</h2>
+                    <p class="text-gray-200 text-lg leading-relaxed">${res.desc}</p>
+                    <div class="mt-6 pt-4 border-t border-gray-600 text-xs text-gray-400 font-mono">
+                        系統判定: User[人${uRen}/地${uDi}/外${uWai}/總${uZong}] vs Target[人${tRen}/地${tDi}/外${tWai}/總${tZong}]
+                    </div>
+                    <!-- 水印 -->
+                    <div class="mt-2 text-[10px] text-gray-500 opacity-50">@找對的人 App - 精準姓名學分析</div>
+                </div>
+                
+                <button onclick="shareResult()" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-lg shadow-lg flex justify-center items-center gap-2 transition-all">
+                    <span>📸</span> 儲存結果圖片分享給朋友
+                </button>
+            `;
+            area.classList.remove('hidden');
+        }
+
+        // --- 新增：截圖分享功能 ---
+        function shareResult() {
+            const captureTarget = document.getElementById('captureTarget');
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = "<span>⏳</span> 正在產生精美圖卡...";
+            btn.disabled = true;
+
+            // 使用 html2canvas 將指定的 div 轉成 canvas
+            html2canvas(captureTarget, {
+                backgroundColor: "#111827", // 保持深色背景
+                scale: 2 // 提高截圖畫質
+            }).then(canvas => {
+                // 將 canvas 轉為圖片 URL
+                const imgUrl = canvas.toDataURL("image/png");
+                
+                // 建立一個隱藏的下載連結並觸發點擊
+                const downloadLink = document.createElement("a");
+                downloadLink.href = imgUrl;
+                downloadLink.download = "找對的人_鑑定報告.png"; // 下載的檔名
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                btn.innerHTML = "<span>✅</span> 圖片已儲存！快去 LINE 分享吧";
+                
+                // 3秒後恢復按鈕狀態
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 3000);
+            }).catch(err => {
+                console.error("截圖失敗:", err);
+                alert("產生圖片失敗，請直接使用手機截圖功能。");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
