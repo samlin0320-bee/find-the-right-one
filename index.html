@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>找對的人 (V6.3 社群分享版)</title>
+    <title>找對的人 (V7.0 合盤版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 html2canvas 函式庫，用於將結果轉換為圖片 -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -43,6 +43,16 @@
             83% { border-color: #8b00ff; box-shadow: 0 0 10px #8b00ff; }
             100% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
         }
+
+        /* 結果卡片樣式 */
+        .result-card { border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .result-noble-direct { background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.4); }
+        .result-noble-indirect { background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.4); }
+        .result-villain-direct { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); }
+        .result-villain-indirect { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4); }
+        .result-equality { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); }
+        .result-polarity { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); }
+        .result-none { background: rgba(107,114,128,0.15); border: 1px solid rgba(107,114,128,0.4); }
     </style>
 </head>
 <body class="min-h-screen p-4 flex flex-col items-center">
@@ -50,7 +60,7 @@
     <header class="w-full max-w-md flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 tracking-wider">找對的人</h1>
-            <div class="text-xs text-purple-400 font-bold tracking-widest mt-1">V6.3 社群分享版</div>
+            <div class="text-xs text-purple-400 font-bold tracking-widest mt-1">V7.0 合盤版</div>
         </div>
         <div class="flex items-center gap-2">
             <span id="dbCount" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300 font-mono">內建: 6000字</span>
@@ -61,10 +71,10 @@
         </div>
     </header>
 
-    <!-- 1. 我是誰 (User) -->
+    <!-- 1. 我是誰 (User A) -->
     <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-yellow-500">
         <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-yellow-400 text-lg flex items-center">😎 我是誰 (User)</h3>
+            <h3 class="font-bold text-yellow-400 text-lg flex items-center">😎 我是誰 (A)</h3>
             <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
                 <input type="checkbox" id="uDouble" class="mr-1 w-4 h-4 accent-yellow-500 rounded"> 複姓 (前兩字為姓)
             </label>
@@ -80,7 +90,7 @@
             <div class="flex justify-center gap-3 flex-wrap" id="uStrokesArea"></div>
         </div>
         
-        <!-- 五格預覽 -->
+        <!-- 五格預覽 + 陰陽盤 -->
         <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
             <div>天<span id="uTian" class="text-yellow-400 font-bold ml-1">?</span></div>
             <div>人<span id="uRen" class="text-yellow-400 font-bold ml-1">?</span></div>
@@ -88,12 +98,13 @@
             <div>外<span id="uWai" class="text-yellow-400 font-bold ml-1">?</span></div>
             <div>總<span id="uZong" class="text-yellow-400 font-bold ml-1">?</span></div>
         </div>
+        <div id="uPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
     </div>
 
-    <!-- 2. 對方是 (Target) -->
+    <!-- 2. 對方是 (User B) -->
     <div class="glass w-full max-w-md p-5 mb-8 relative border-l-4 border-blue-500">
         <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-blue-400 text-lg flex items-center">🎯 對方是 (Target)</h3>
+            <h3 class="font-bold text-blue-400 text-lg flex items-center">🎯 對方是 (B)</h3>
             <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
                 <input type="checkbox" id="tDouble" class="mr-1 w-4 h-4 accent-blue-500 rounded"> 複姓 (前兩字為姓)
             </label>
@@ -108,7 +119,7 @@
             <div class="flex justify-center gap-3 flex-wrap" id="tStrokesArea"></div>
         </div>
 
-        <!-- 五格預覽 -->
+        <!-- 五格預覽 + 陰陽盤 -->
         <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
             <div>天<span id="tTian" class="text-blue-400 font-bold ml-1">?</span></div>
             <div>人<span id="tRen" class="text-blue-400 font-bold ml-1">?</span></div>
@@ -116,11 +127,12 @@
             <div>外<span id="tWai" class="text-blue-400 font-bold ml-1">?</span></div>
             <div>總<span id="tZong" class="text-blue-400 font-bold ml-1">?</span></div>
         </div>
+        <div id="tPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
     </div>
 
     <!-- 按鈕 -->
     <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-8 flex justify-center items-center gap-2">
-        <span>🔍</span> 啟動精準鑑定
+        <span>🔍</span> 啟動合盤鑑定
     </button>
 
     <!-- 結果區 -->
@@ -134,8 +146,9 @@
         //  資料庫系統
         // ==========================================
         let externalDB = {}; 
+        let dbLoaded = false;
 
-        // 核心字庫 (預設 6000 字精簡版演示)
+        // 核心字庫 (預設精簡版演示)
         const coreDB = {
             '一':1, '二':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9, '十':10,
             '陳':16, '林':8, '黃':12, '張':11, '李':7, '王':4, '吳':7, '劉':15, '蔡':17, '楊':13,
@@ -197,6 +210,16 @@
                                 loadedCount++;
                             }
                         });
+                    }
+                    
+                    // 也支援精簡格式 { "字": 筆劃 }
+                    if (!dataArray || loadedCount === 0) {
+                        for (let ch in json) {
+                            if (typeof json[ch] === 'number' && ch.length === 1) {
+                                externalDB[ch] = json[ch];
+                                loadedCount++;
+                            }
+                        }
                     }
 
                     if (loadedCount > 0) {
@@ -277,42 +300,32 @@
             const inputs = document.querySelectorAll(`[id^="${prefix}S_val_"]`);
             if (inputs.length === 0) {
                 ['Tian','Ren','Di','Wai','Zong'].forEach(k => document.getElementById(prefix + k).innerText = "?");
+                document.getElementById(prefix + 'Polarity').innerHTML = '';
                 return;
             }
             const strokes = Array.from(inputs).map(inp => parseInt(inp.value) || 0);
             
-            // 確認是否勾選為複姓
             const isDouble = document.getElementById(prefix + 'Double').checked;
 
             if (strokes.some(s => s === 0)) return;
 
-            // 動態陣列切割：依據是否為複姓，決定姓氏的字數
             const sLen = isDouble ? 2 : 1;
-            if (strokes.length < sLen) return; // 字數不足以構成複姓
+            if (strokes.length < sLen) return;
 
             const surnameStrokes = strokes.slice(0, sLen); 
             const nameStrokes = strokes.slice(sLen);
 
-            // 天格：單姓加1，複姓相加
             let heaven = surnameStrokes.length === 1 ? surnameStrokes[0] + 1 : surnameStrokes[0] + surnameStrokes[1];
-            
-            // 人格：姓氏最後一字 + 名字第一字
             let person = surnameStrokes[surnameStrokes.length-1] + (nameStrokes[0] || 0);
-            
-            // 地格：單名加1，複名相加
             let earth = 0;
             if (nameStrokes.length === 0) {
                 earth = 0;
             } else if (nameStrokes.length === 1) {
-                earth = nameStrokes[0] + 1; // 系統自動判斷單名並 +1
+                earth = nameStrokes[0] + 1;
             } else {
                 earth = nameStrokes.reduce((a,b)=>a+b, 0);
             }
-
-            // 總格：全部相加
             let total = strokes.reduce((a,b)=>a+b, 0);
-            
-            // 萬用外格公式：總格 - 人格 + (單姓補1) + (單名補1)
             let outer = total - person;
             if (surnameStrokes.length === 1) outer += 1;
             if (nameStrokes.length === 1) outer += 1;
@@ -322,65 +335,287 @@
             document.getElementById(prefix + 'Di').innerText = earth;
             document.getElementById(prefix + 'Wai').innerText = outer;
             document.getElementById(prefix + 'Zong').innerText = total;
+
+            // 陰陽盤判定
+            const grids = [heaven, person, earth, outer, total];
+            const polarity = analyzePolarity(grids);
+            const polarityEl = document.getElementById(prefix + 'Polarity');
+            if (polarity === 'full_yang') {
+                polarityEl.innerHTML = '<span class="text-red-400 font-bold">☀️ 全陽盤：個性豪爽、直接、像哥們、女生帶男相</span>';
+            } else if (polarity === 'full_yin') {
+                polarityEl.innerHTML = '<span class="text-blue-400 font-bold">🌙 全陰盤：個性溫柔、優柔寡斷、容易變卦</span>';
+            } else {
+                polarityEl.innerHTML = '';
+            }
         }
 
-        function reduce(num) {
-            if (num === 0) return 0;
-            while (num > 9) { num = num.toString().split('').reduce((a,b)=>parseInt(a)+parseInt(b), 0); }
-            return num;
+        // ==========================================
+        //  核心演算法（依據姓名學數位化3）
+        // ==========================================
+
+        // 1. 化氣函式 (Reduce to single digit)
+        function getHuaQi(number) {
+            let sum = number;
+            while (sum > 9) {
+                let digits = sum.toString().split('').map(Number);
+                sum = digits.reduce((a, b) => a + b, 0);
+            }
+            return sum;
         }
 
+        // 2. 陰陽盤判斷
+        function analyzePolarity(grids) {
+            let oddCount = 0;
+            let evenCount = 0;
+            grids.forEach(num => {
+                if (num % 2 !== 0) oddCount++;
+                else evenCount++;
+            });
+            if (oddCount === 5) return 'full_yang';
+            if (evenCount === 5) return 'full_yin';
+            return 'mixed';
+        }
+
+        // 3. 雙人合盤引擎 (Cross Analysis)
+        function analyzeRelationship(userA, userB) {
+            let results = [];
+
+            // --- A 對 B 的貴人檢查 (看 A人 vs B地) ---
+            if (userA.ren === userB.di) {
+                results.push({
+                    type: 'noble_direct',
+                    icon: '👼',
+                    title: '直接貴人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>直接貴人</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren}) = ${userB.name} 的地格(${userB.di})，會主動幫忙、直接給資源。`,
+                    strength: '1x（直接給資源）',
+                    css: 'result-noble-direct'
+                });
+            } else if (getHuaQi(userA.ren) === getHuaQi(userB.di)) {
+                results.push({
+                    type: 'noble_indirect',
+                    icon: '✨',
+                    title: '間接貴人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>間接貴人</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren})化氣${getHuaQi(userA.ren)} = ${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)}，會介紹資源，力量更強大。`,
+                    strength: '10x（轉介資源，力量更強）',
+                    css: 'result-noble-indirect'
+                });
+            }
+
+            // --- B 對 A 的貴人檢查 (看 B人 vs A地) ---
+            if (userB.ren === userA.di) {
+                results.push({
+                    type: 'noble_direct',
+                    icon: '👼',
+                    title: '直接貴人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>直接貴人</b>`,
+                    detail: `${userB.name} 的人格(${userB.ren}) = ${userA.name} 的地格(${userA.di})，會主動幫忙、直接給資源。`,
+                    strength: '1x（直接給資源）',
+                    css: 'result-noble-direct'
+                });
+            } else if (getHuaQi(userB.ren) === getHuaQi(userA.di)) {
+                results.push({
+                    type: 'noble_indirect',
+                    icon: '✨',
+                    title: '間接貴人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>間接貴人</b>`,
+                    detail: `${userB.name} 的人格(${userB.ren})化氣${getHuaQi(userB.ren)} = ${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)}，會介紹資源，力量更強大。`,
+                    strength: '10x（轉介資源，力量更強）',
+                    css: 'result-noble-indirect'
+                });
+            }
+
+            // --- 小人檢查 (地格 vs 總格) ---
+            // Case 1: A地 vs B總 (若成立，B拖累A)
+            if (userA.di === userB.zong) {
+                results.push({
+                    type: 'villain_direct',
+                    icon: '💣',
+                    title: '明小人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>明小人</b>`,
+                    detail: `${userA.name} 的地格(${userA.di}) = ${userB.name} 的總格(${userB.zong})，直接衝突、不給面子、拖累 ${userA.name}。`,
+                    strength: '1x（直接衝突/不給面子）',
+                    css: 'result-villain-direct'
+                });
+            } else if (getHuaQi(userA.di) === getHuaQi(userB.zong)) {
+                results.push({
+                    type: 'villain_indirect',
+                    icon: '👻',
+                    title: '暗小人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>暗小人</b>`,
+                    detail: `${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)} = ${userB.name} 的總格(${userB.zong})化氣${getHuaQi(userB.zong)}，無心之過、${userA.name} 要幫 ${userB.name} 擦屁股。`,
+                    strength: '10x（無心之過/需幫忙擦屁股）',
+                    css: 'result-villain-indirect'
+                });
+            }
+
+            // Case 2: B地 vs A總 (若成立，A拖累B)
+            if (userB.di === userA.zong) {
+                results.push({
+                    type: 'villain_direct',
+                    icon: '💣',
+                    title: '明小人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>明小人</b>`,
+                    detail: `${userB.name} 的地格(${userB.di}) = ${userA.name} 的總格(${userA.zong})，直接衝突、不給面子、拖累 ${userB.name}。`,
+                    strength: '1x（直接衝突/不給面子）',
+                    css: 'result-villain-direct'
+                });
+            } else if (getHuaQi(userB.di) === getHuaQi(userA.zong)) {
+                results.push({
+                    type: 'villain_indirect',
+                    icon: '👻',
+                    title: '暗小人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>暗小人</b>`,
+                    detail: `${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)} = ${userA.name} 的總格(${userA.zong})化氣${getHuaQi(userA.zong)}，無心之過、${userB.name} 要幫 ${userA.name} 擦屁股。`,
+                    strength: '10x（無心之過/需幫忙擦屁股）',
+                    css: 'result-villain-indirect'
+                });
+            }
+
+            // --- 平宮檢查 (同格比較) ---
+            if (userA.ren === userB.ren) {
+                results.push({
+                    type: 'equality',
+                    icon: '🤝',
+                    title: '人格平宮',
+                    desc: `兩人<b>人生觀/價值觀相近</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren}) = ${userB.name} 的人格(${userB.ren})，想法相近、容易溝通。`,
+                    strength: '',
+                    css: 'result-equality'
+                });
+            }
+            if (userA.di === userB.di) {
+                results.push({
+                    type: 'equality',
+                    icon: '💕',
+                    title: '地格平宮',
+                    desc: `兩人<b>感情觀/事業做法相近</b>`,
+                    detail: `${userA.name} 的地格(${userA.di}) = ${userB.name} 的地格(${userB.di})，感情觀一致、事業做法相近。`,
+                    strength: '',
+                    css: 'result-equality'
+                });
+            }
+            if (userA.zong === userB.zong) {
+                results.push({
+                    type: 'equality',
+                    icon: '🎯',
+                    title: '總格平宮',
+                    desc: `兩人<b>人生終極目標一致</b>`,
+                    detail: `${userA.name} 的總格(${userA.zong}) = ${userB.name} 的總格(${userB.zong})，人生終極目標一致。`,
+                    strength: '',
+                    css: 'result-equality'
+                });
+            }
+
+            return results;
+        }
+
+        // ==========================================
+        //  主計算函式
+        // ==========================================
         function calculateAndScan() {
             updatePreview('u'); updatePreview('t');
             
+            const uName = document.getElementById('uName').value.trim();
+            const tName = document.getElementById('tName').value.trim();
+
             const uRen = parseInt(document.getElementById('uRen').innerText);
             const tRen = parseInt(document.getElementById('tRen').innerText);
             
             if (isNaN(uRen) || isNaN(tRen)) { alert("請確保所有筆劃都已輸入正確喔！"); return; }
 
+            const uTian = parseInt(document.getElementById('uTian').innerText);
             const uDi = parseInt(document.getElementById('uDi').innerText);
             const uZong = parseInt(document.getElementById('uZong').innerText);
             const uWai = parseInt(document.getElementById('uWai').innerText);
             
+            const tTian = parseInt(document.getElementById('tTian').innerText);
             const tDi = parseInt(document.getElementById('tDi').innerText);
             const tZong = parseInt(document.getElementById('tZong').innerText);
             const tWai = parseInt(document.getElementById('tWai').innerText);
 
-            const uRenH = reduce(uRen); const uDiH = reduce(uDi); const uZongH = reduce(uZong);
-            const tRenH = reduce(tRen); const tDiH = reduce(tDi); const tZongH = reduce(tZong);
+            const userA = { name: uName || 'A', tian: uTian, ren: uRen, di: uDi, wai: uWai, zong: uZong };
+            const userB = { name: tName || 'B', tian: tTian, ren: tRen, di: tDi, wai: tWai, zong: tZong };
 
-            let res = { type: 'normal', title: '泛泛之交', icon: '🍵', color: 'border-gray-500 bg-gray-800', desc: '緣分平淡，無明顯生剋。' };
+            // 執行合盤分析
+            const results = analyzeRelationship(userA, userB);
 
-            if (tRen === uDi) { res = { type: 'noble', title: '對方是對的人 (貴人)', icon: '👼', color: 'border-yellow-500 bg-yellow-900', desc: `恭喜！這是對的人。對方的思想(人格${tRen})直接拉拔你的基礎(地格${uDi})，是來成就你的。` }; }
-            else if (uRen === tDi) { res = { type: 'noble', title: '你是對方的貴人', icon: '🤝', color: 'border-yellow-500 bg-yellow-900', desc: `你的格局(人格${uRen})在對方之上，你會想幫他。這是一段良善的緣分。` }; }
-            else if (tZong === uDi) { res = { type: 'villain', title: '這不是對的人 (小人)', icon: '💣', color: 'border-red-500 bg-red-900', desc: `警報！這可能不是對的人。對方的結果(總格${tZong})會拖累你的基礎(地格${uDi})。` }; }
-            else if (uZong === tDi) { res = { type: 'villain', title: '相處需謹慎 (小人)', icon: '⚠️', color: 'border-red-500 bg-red-900', desc: `你們氣場相剋，你可能會無意間拖累他。彼此相處會比較辛苦。` }; }
-            else if (tRenH === uDiH) { res = { type: 'indirect_noble', title: '潛在的對的人', icon: '✨', color: 'border-purple-500 bg-purple-900', desc: '雖然數字不同，但化氣相同。是潛力股，會暗中給你資源。' }; }
-            else if (uRenH === tDiH) { res = { type: 'indirect_noble', title: '你是潛在貴人', icon: '✨', color: 'border-purple-500 bg-purple-900', desc: '化氣相同，你會在不知不覺中幫助到他。' }; }
-            else if (tZongH === uDiH || uZongH === tDiH) { res = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'border-gray-500 bg-gray-700', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
+            // 陰陽盤分析
+            const uPol = analyzePolarity([uTian, uRen, uDi, uWai, uZong]);
+            const tPol = analyzePolarity([tTian, tRen, tDi, tWai, tZong]);
 
+            // 渲染結果
             const area = document.getElementById('resultArea');
-            // 注意：這裡我加入了一個 id="captureTarget" 以及分享按鈕
-            area.innerHTML = `
-                <div id="captureTarget" class="glass p-6 text-center border-t-8 ${res.color} shadow-2xl transform transition-all hover:scale-105 bg-[#111827]">
-                    <div class="text-7xl mb-4 filter drop-shadow-lg animate-bounce">${res.icon}</div>
-                    <h2 class="text-3xl font-bold mb-2 text-white">${res.title}</h2>
-                    <p class="text-gray-200 text-lg leading-relaxed">${res.desc}</p>
-                    <div class="mt-6 pt-4 border-t border-gray-600 text-xs text-gray-400 font-mono">
-                        系統判定: User[人${uRen}/地${uDi}/外${uWai}/總${uZong}] vs Target[人${tRen}/地${tDi}/外${tWai}/總${tZong}]
-                    </div>
-                    <!-- 水印 -->
-                    <div class="mt-2 text-[10px] text-gray-500 opacity-50">@找對的人 App - 精準姓名學分析</div>
-                </div>
-                
-                <button onclick="shareResult()" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-lg shadow-lg flex justify-center items-center gap-2 transition-all">
-                    <span>📸</span> 儲存結果圖片分享給朋友
-                </button>
-            `;
+            let html = '<div id="captureTarget" class="bg-[#111827] p-4 rounded-2xl">';
+            
+            // 標題
+            html += `<div class="text-center mb-4">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">合盤鑑定報告</h2>
+                <p class="text-gray-400 text-sm mt-1">${userA.name} ↔ ${userB.name}</p>
+            </div>`;
+
+            // 五格對照表
+            html += `<div class="glass p-4 mb-4">
+                <table class="w-full text-center text-sm">
+                    <tr class="text-gray-400">
+                        <th class="pb-2"></th><th class="pb-2">天格</th><th class="pb-2">人格</th><th class="pb-2">地格</th><th class="pb-2">外格</th><th class="pb-2">總格</th>
+                    </tr>
+                    <tr class="text-yellow-400 font-bold">
+                        <td class="py-1">${userA.name}</td><td>${uTian}</td><td>${uRen}</td><td>${uDi}</td><td>${uWai}</td><td>${uZong}</td>
+                    </tr>
+                    <tr class="text-blue-400 font-bold">
+                        <td class="py-1">${userB.name}</td><td>${tTian}</td><td>${tRen}</td><td>${tDi}</td><td>${tWai}</td><td>${tZong}</td>
+                    </tr>
+                </table>
+            </div>`;
+
+            // 陰陽盤顯示
+            if (uPol !== 'mixed' || tPol !== 'mixed') {
+                html += '<div class="result-card result-polarity mb-4">';
+                html += '<div class="text-center font-bold text-emerald-400 mb-2">🔮 陰陽盤屬性</div>';
+                if (uPol === 'full_yang') html += `<div class="text-sm text-gray-200 mb-1">☀️ ${userA.name}：<b class="text-red-400">全陽盤</b> — 個性豪爽、直接、像哥們、女生帶男相</div>`;
+                if (uPol === 'full_yin') html += `<div class="text-sm text-gray-200 mb-1">🌙 ${userA.name}：<b class="text-blue-400">全陰盤</b> — 個性溫柔、優柔寡斷、容易變卦</div>`;
+                if (tPol === 'full_yang') html += `<div class="text-sm text-gray-200 mb-1">☀️ ${userB.name}：<b class="text-red-400">全陽盤</b> — 個性豪爽、直接、像哥們、女生帶男相</div>`;
+                if (tPol === 'full_yin') html += `<div class="text-sm text-gray-200 mb-1">🌙 ${userB.name}：<b class="text-blue-400">全陰盤</b> — 個性溫柔、優柔寡斷、容易變卦</div>`;
+                html += '</div>';
+            }
+
+            // 關係結果卡片
+            if (results.length > 0) {
+                results.forEach(r => {
+                    html += `<div class="result-card ${r.css}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">${r.icon}</span>
+                            <span class="font-bold text-lg text-white">${r.title}</span>
+                            ${r.strength ? `<span class="text-xs text-gray-400 ml-auto">${r.strength}</span>` : ''}
+                        </div>
+                        <div class="text-gray-200 text-sm mb-1">${r.desc}</div>
+                        <div class="text-gray-400 text-xs">${r.detail}</div>
+                    </div>`;
+                });
+            } else {
+                html += `<div class="result-card result-none text-center">
+                    <div class="text-4xl mb-2">🍵</div>
+                    <div class="font-bold text-lg text-white mb-1">泛泛之交</div>
+                    <div class="text-gray-400 text-sm">兩人之間無明顯貴人、小人或平宮關係，緣分平淡。</div>
+                </div>`;
+            }
+
+            // 水印
+            html += `<div class="mt-4 text-center text-[10px] text-gray-500 opacity-50">@找對的人 App V7.0 — 姓名合盤分析 | 來源：姓名學數位化第三堂</div>`;
+            html += '</div>';
+
+            // 分享按鈕
+            html += `<button onclick="shareResult()" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-lg shadow-lg flex justify-center items-center gap-2 transition-all">
+                <span>📸</span> 儲存結果圖片分享給朋友
+            </button>`;
+
+            area.innerHTML = html;
             area.classList.remove('hidden');
         }
 
-        // --- 新增：截圖分享功能 ---
+        // --- 截圖分享功能 ---
         function shareResult() {
             const captureTarget = document.getElementById('captureTarget');
             const btn = event.currentTarget;
@@ -389,25 +624,19 @@
             btn.innerHTML = "<span>⏳</span> 正在產生精美圖卡...";
             btn.disabled = true;
 
-            // 使用 html2canvas 將指定的 div 轉成 canvas
             html2canvas(captureTarget, {
-                backgroundColor: "#111827", // 保持深色背景
-                scale: 2 // 提高截圖畫質
+                backgroundColor: "#111827",
+                scale: 2
             }).then(canvas => {
-                // 將 canvas 轉為圖片 URL
                 const imgUrl = canvas.toDataURL("image/png");
-                
-                // 建立一個隱藏的下載連結並觸發點擊
                 const downloadLink = document.createElement("a");
                 downloadLink.href = imgUrl;
-                downloadLink.download = "找對的人_鑑定報告.png"; // 下載的檔名
+                downloadLink.download = "找對的人_合盤報告.png";
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
 
                 btn.innerHTML = "<span>✅</span> 圖片已儲存！快去 LINE 分享吧";
-                
-                // 3秒後恢復按鈕狀態
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
@@ -419,6 +648,44 @@
                 btn.disabled = false;
             });
         }
+
+        // --- 啟動時自動載入 8.1 萬字庫 ---
+        (function autoLoadKangxiDB() {
+            const btnText = document.getElementById('btnText');
+            const importBtn = document.getElementById('importBtn');
+            const dbCount = document.getElementById('dbCount');
+            
+            btnText.innerText = '載入中...';
+            importBtn.classList.add('loading-pulse');
+            
+            fetch('kangxi_db.json')
+                .then(resp => {
+                    if (!resp.ok) throw new Error('字庫檔案不存在');
+                    return resp.json();
+                })
+                .then(json => {
+                    let loadedCount = 0;
+                    for (let ch in json) {
+                        externalDB[ch] = json[ch];
+                        loadedCount++;
+                    }
+                    if (loadedCount > 0) {
+                        dbLoaded = true;
+                        const countStr = loadedCount > 10000 ? (loadedCount/10000).toFixed(1) + '萬' : loadedCount;
+                        dbCount.innerText = '滿血版: ' + countStr + '字';
+                        dbCount.classList.add('text-purple-400');
+                        btnText.innerText = '8.1萬字庫已載入';
+                        importBtn.classList.remove('bg-purple-600', 'loading-pulse');
+                        importBtn.classList.add('bg-green-600');
+                        console.log('✅ 康熙字典字庫自動載入完成: ' + loadedCount + ' 字');
+                    }
+                })
+                .catch(err => {
+                    console.log('ℹ️ 未找到內建字庫，可手動匯入: ' + err.message);
+                    btnText.innerText = '匯入8萬字庫';
+                    importBtn.classList.remove('loading-pulse');
+                });
+        })();
     </script>
 </body>
 </html>
