@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>找對的人 V6.5 免費版</title>
-    <meta name="description" content="找對的人 - 精準姓名學分析工具，免費使用，未來將上架手機 APP">
+    <title>找對的人 V6.5 免費版 — 姓名學貴人小人精準鑑定</title>
+    <meta name="description" content="找對的人 V6.5 免費版 — 內建 8.1 萬字康熙字典，精準鑑定貴人與小人。適用於看醫生、找律師、找會計師、找理專、找伴侶等 15 大場域。即將上架 iOS / Android APP。">
+    <meta name="keywords" content="找對的人,姓名學,貴人,小人,康熙字典,五格,筆劃,姓名配對,免費算命,姓名學APP">
+    <meta property="og:title" content="找對的人 V6.5 免費版 — 姓名學貴人小人精準鑑定">
+    <meta property="og:description" content="輸入兩人姓名，10 秒鑑定對方是貴人還是小人！內建 8.1 萬字康熙字典，完全免費。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://samlin0320-bee.github.io/find-the-right-one/v65.html">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -104,45 +109,69 @@
         </div>
     </header>
 
-    <!-- ========== 使用場域 ========== -->
+    <!-- ========== 使用場域（15 大場域）========== -->
     <div class="w-full max-w-md mb-4">
-        <div class="text-xs text-gray-400 mb-2 text-center font-bold tracking-wider">▼ 適用場域 ▼</div>
-        <div class="grid grid-cols-3 gap-2">
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">🏥</div>
-                <div class="text-[11px] text-gray-300 font-bold">看醫生</div>
+        <div class="text-xs text-gray-400 mb-2 text-center font-bold tracking-wider">▼ 15 大適用場域 ▼</div>
+        <div class="grid grid-cols-5 gap-1.5">
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🏥</div>
+                <div class="text-[10px] text-gray-300 font-bold">看醫生</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">💰</div>
-                <div class="text-[11px] text-gray-300 font-bold">找理專</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🦷</div>
+                <div class="text-[10px] text-gray-300 font-bold">找牙醫</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">👔</div>
-                <div class="text-[11px] text-gray-300 font-bold">找老闆</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">⚖️</div>
+                <div class="text-[10px] text-gray-300 font-bold">找律師</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">🏠</div>
-                <div class="text-[11px] text-gray-300 font-bold">找室友</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🧮</div>
+                <div class="text-[10px] text-gray-300 font-bold">找會計師</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">⚖️</div>
-                <div class="text-[11px] text-gray-300 font-bold">找律師</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">💰</div>
+                <div class="text-[10px] text-gray-300 font-bold">找理專</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">📈</div>
-                <div class="text-[11px] text-gray-300 font-bold">找股票</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🏛️</div>
+                <div class="text-[10px] text-gray-300 font-bold">找地政士</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">🏢</div>
-                <div class="text-[11px] text-gray-300 font-bold">找仲介</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🏗️</div>
+                <div class="text-[10px] text-gray-300 font-bold">找建築師</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">💍</div>
-                <div class="text-[11px] text-gray-300 font-bold">找伴侶</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">👔</div>
+                <div class="text-[10px] text-gray-300 font-bold">找老闆</div>
             </div>
-            <div class="scene-card glass text-center py-2.5 px-1 rounded-xl">
-                <div class="text-2xl mb-1">❤️</div>
-                <div class="text-[11px] text-gray-300 font-bold">找男女友</div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🏠</div>
+                <div class="text-[10px] text-gray-300 font-bold">找室友</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">📈</div>
+                <div class="text-[10px] text-gray-300 font-bold">找股票</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🏢</div>
+                <div class="text-[10px] text-gray-300 font-bold">找仲介</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">💍</div>
+                <div class="text-[10px] text-gray-300 font-bold">找伴侶</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">❤️</div>
+                <div class="text-[10px] text-gray-300 font-bold">找男女友</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl">
+                <div class="text-xl mb-0.5">🧘</div>
+                <div class="text-[10px] text-gray-300 font-bold">人生導師</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl bg-gradient-to-br from-purple-900/30 to-blue-900/30">
+                <div class="text-xl mb-0.5">🔮</div>
+                <div class="text-[10px] text-amber-400 font-bold">更多場域</div>
             </div>
         </div>
     </div>
@@ -223,8 +252,9 @@
     <!-- ========== Footer ========== -->
     <footer class="w-full max-w-md text-center py-6 border-t border-gray-800 mt-4">
         <div class="text-xs text-gray-500">
-            <p>找對的人 V6.5 免費版 | 康熙字典 8.1 萬字庫</p>
+            <p>找對的人 V6.5 免費版 | 康熙字典 8.1 萬字庫 | 15 大適用場域</p>
             <p class="mt-1">📱 手機 APP 即將上架 iOS / Android</p>
+            <p class="mt-1">適用：醫生・牙醫・律師・會計師・理專・地政士・建築師・老闆・室友・股票・仲介・伴侶・男女友・人生導師</p>
             <p class="mt-1 opacity-50">&copy; 2025 找對的人 App. All rights reserved.</p>
         </div>
     </footer>
@@ -396,7 +426,7 @@
             else if (tZongH === uDiH || uZongH === tDiH) { res = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'border-gray-500 bg-gray-700', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
 
             // 產生分享文字
-            const shareText = `【找對的人 鑑定報告】\n${uName} ↔ ${tName}\n結果：${res.title}\n${res.desc}\n\n免費測試：https://samlin0320-bee.github.io/find-the-right-one/v65.html`;
+            const shareText = `【找對的人 V6.5 鑑定報告】\n${uName} ↔ ${tName}\n結果：${res.title}\n${res.desc}\n\n🆓 免費測試（15大場域適用）：\nhttps://samlin0320-bee.github.io/find-the-right-one/v65.html\n\n📱 APP 即將上架！`;
 
             const area = document.getElementById('resultArea');
             area.innerHTML = `
