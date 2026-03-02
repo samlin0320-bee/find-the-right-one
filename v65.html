@@ -10,6 +10,13 @@
     <meta property="og:description" content="輸入兩人姓名，10 秒鑑定對方是貴人還是小人！內建 8.1 萬字康熙字典，完全免費。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://samlin0320-bee.github.io/find-the-right-one/v65.html">
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="找對的人">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -675,5 +682,15 @@
             });
         }
     </script>
+<!-- Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/find-the-right-one/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
+</script>
 </body>
 </html>
