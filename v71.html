@@ -325,16 +325,30 @@
             reader.readAsText(file);
         }
 
-        // ==================== 爭議字庫（雙筆劃）====================
-        const dualStrokesMap = {
-            '育': [9, 10], '卉': [5, 6], '妍': [8, 9], '屏': [10, 11],
-            '毓': [13, 14], '沛': [8, 9], '慈': [13, 14], '蕭': [18, 19]
+        // ==================== 異體字庫（ambiguous_characters）====================
+        const ambiguousChars = {
+            '育': { options: [9, 10], description: '上方是否有獨立的一點？(肉部異體字)' },
+            '卉': { options: [5, 6], description: '十字頭寫法差異' },
+            '妍': { options: [8, 9], description: '右側開口或封口差異' },
+            '屏': { options: [10, 11], description: '上方尸部與內部寫法差異' },
+            '毓': { options: [13, 14], description: '右側流字邊寫法差異' },
+            '沛': { options: [8, 9], description: '右側寫法為市(8劃)或沛本字寫法(9劃)' },
+            '慈': { options: [13, 14], description: '上方草字頭寫法差異' },
+            '蕭': { options: [18, 19], description: '草字頭連筆或斷開的寫法差異' }
         };
+        // 使用者已選擇的異體字筆劃（key: char, value: selectedStroke）
+        const userSelectedStrokes = {};
         // ==================== 字元辨識 ====================
         function getCharInfo(char) {
-            // 優先檢查爭議字庫（雙筆劃），以較小值為預設
-            if (dualStrokesMap[char]) {
-                return { stroke: dualStrokesMap[char][0], source: 'dual', alt: dualStrokesMap[char][1] };
+            // 優先檢查異體字庫
+            if (ambiguousChars[char]) {
+                const opts = ambiguousChars[char].options;
+                // 如果使用者已選擇，用選擇的值
+                if (userSelectedStrokes[char]) {
+                    return { stroke: userSelectedStrokes[char], source: 'dual', alt: opts[0] === userSelectedStrokes[char] ? opts[1] : opts[0], options: opts, desc: ambiguousChars[char].description };
+                }
+                // 未選擇時，不自動填入，返回 null stroke 標記需要選擇
+                return { stroke: null, source: 'dual_pending', options: opts, alt: opts[1], desc: ambiguousChars[char].description };
             }
             if (externalDB[char]) {
                 const s = externalDB[char];
@@ -352,6 +366,18 @@
             strokesArea.innerHTML = '';
             if (!name) { updatePreview(prefix); return; }
             const chars = [...name];
+            // 收集需要選擇的異體字
+            const pendingChars = [];
+            chars.forEach((ch) => {
+                if (ambiguousChars[ch] && !userSelectedStrokes[ch]) {
+                    pendingChars.push(ch);
+                }
+            });
+            // 如果有未選擇的異體字，彈出選擇視窗
+            if (pendingChars.length > 0) {
+                showAmbiguousDialog(pendingChars, prefix);
+            }
+            // 渲染筆劃顯示區
             chars.forEach((ch, i) => {
                 const info = getCharInfo(ch);
                 const div = document.createElement('div');
@@ -365,7 +391,7 @@
                 input.id = prefix + 'S_val_' + i;
                 input.placeholder = '?';
                 input.oninput = function() { updatePreview(prefix); };
-                if (info) { input.value = info.stroke; }
+                if (info && info.stroke !== null) { input.value = info.stroke; }
                 const charLabel = document.createElement('div');
                 charLabel.className = 'text-white text-sm font-bold mt-1';
                 charLabel.innerText = ch;
@@ -374,8 +400,13 @@
                     const src = info.source;
                     if (src === 'dual') {
                         tag.className = 'char-tag tag-rainbow';
-                        tag.innerText = `爭議(${info.stroke}或${info.alt})`;
+                        tag.innerText = `異體字(已選${info.stroke}劃)`;
                         input.className = 'stroke-input rainbow-flash text-white';
+                    } else if (src === 'dual_pending') {
+                        tag.className = 'char-tag tag-rainbow';
+                        tag.innerText = `❓ 請選擇筆劃`;
+                        input.className = 'stroke-input rainbow-flash text-white';
+                        input.placeholder = '?';
                     }
                     else if (src === 'trad' || src === '繁') { tag.className = 'char-tag tag-trad'; tag.innerText = '頂級庫'; }
                     else if (src === 'simp' || src === '簡') { tag.className = 'char-tag tag-simp'; tag.innerText = '簡體庫'; }
@@ -387,6 +418,103 @@
                 strokesArea.appendChild(div);
             });
             updatePreview(prefix);
+        }
+
+        // ==================== 異體字選擇彈窗 ====================
+        function showAmbiguousDialog(pendingChars, prefix) {
+            // 移除舊的彈窗
+            const oldDialog = document.getElementById('ambiguousDialog');
+            if (oldDialog) oldDialog.remove();
+            
+            const overlay = document.createElement('div');
+            overlay.id = 'ambiguousDialog';
+            overlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+            overlay.style.cssText = 'background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);';
+            
+            let formHTML = `
+                <div class="bg-[#1e293b] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-yellow-500/30">
+                    <div class="text-center mb-4">
+                        <div class="text-3xl mb-2">✍️</div>
+                        <h3 class="text-lg font-bold text-yellow-400">異體字筆劃確認</h3>
+                        <p class="text-xs text-gray-400 mt-1">您的名字中包含多種寫法的字，請依據您「平時簽名的習慣」選擇：</p>
+                    </div>`;
+            
+            pendingChars.forEach(ch => {
+                const charData = ambiguousChars[ch];
+                formHTML += `
+                    <div class="mb-4 p-3 rounded-xl" style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2);">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl font-black text-white">「${ch}」</span>
+                            <span class="text-xs text-gray-400">${charData.description}</span>
+                        </div>
+                        <div class="flex gap-3">`;
+                charData.options.forEach(opt => {
+                    formHTML += `
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="ambig_${ch}" value="${opt}" class="hidden peer">
+                                <div class="peer-checked:bg-yellow-500 peer-checked:text-black peer-checked:border-yellow-400 bg-gray-700 text-gray-300 border-2 border-gray-600 rounded-xl py-3 text-center font-bold text-lg transition-all hover:border-yellow-500/50">
+                                    ${opt} 劃
+                                </div>
+                            </label>`;
+                });
+                formHTML += `
+                        </div>
+                    </div>`;
+            });
+            
+            formHTML += `
+                    <button id="ambigConfirmBtn" onclick="confirmAmbiguousSelection('${prefix}')" 
+                        class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl mt-2 text-sm shadow-lg transition-all active:scale-95 hover:from-yellow-400 hover:to-amber-500">
+                        ✅ 確認選擇，開始計算
+                    </button>
+                    <button onclick="skipAmbiguousSelection('${prefix}')" 
+                        class="w-full bg-gray-700 text-gray-400 font-bold py-2 rounded-xl mt-2 text-xs transition-all hover:bg-gray-600">
+                        我不確定，先用較小筆劃計算
+                    </button>
+                </div>`;
+            
+            overlay.innerHTML = formHTML;
+            document.body.appendChild(overlay);
+        }
+        
+        function confirmAmbiguousSelection(prefix) {
+            const dialog = document.getElementById('ambiguousDialog');
+            let allSelected = true;
+            
+            for (const ch in ambiguousChars) {
+                const radio = document.querySelector(`input[name="ambig_${ch}"]:checked`);
+                if (radio) {
+                    userSelectedStrokes[ch] = parseInt(radio.value);
+                } else if (document.querySelector(`input[name="ambig_${ch}"]`)) {
+                    allSelected = false;
+                }
+            }
+            
+            if (!allSelected) {
+                // 閃烁未選擇的項目
+                document.querySelectorAll('#ambiguousDialog input[type=radio]').forEach(r => {
+                    if (!document.querySelector(`input[name="${r.name}"]:checked`)) {
+                        r.closest('.mb-4').style.animation = 'pulse 0.5s';
+                        setTimeout(() => r.closest('.mb-4').style.animation = '', 500);
+                    }
+                });
+                return;
+            }
+            
+            dialog.remove();
+            autoDetect(prefix);
+        }
+        
+        function skipAmbiguousSelection(prefix) {
+            const dialog = document.getElementById('ambiguousDialog');
+            // 未選擇的異體字預設用較小筆劃
+            for (const ch in ambiguousChars) {
+                if (!userSelectedStrokes[ch] && document.querySelector(`input[name="ambig_${ch}"]`)) {
+                    userSelectedStrokes[ch] = ambiguousChars[ch].options[0];
+                }
+            }
+            dialog.remove();
+            autoDetect(prefix);
         }
 
         function updatePreview(prefix) {
