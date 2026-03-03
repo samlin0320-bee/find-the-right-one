@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>找對的人 V7.1 — 姓名學合盤鑑定｜15大場域精準判斷貴人小人</title>
+    <meta name="description" content="找對的人 V7.1 — 結合五格合盤分析與直覺鑑定，內建 8.1 萬字康熙字典，精準鑑定貴人與小人。適用於看醫生、找律師、找會計師等 15 大場域。">
+    <meta name="keywords" content="找對的人,姓名學,貴人,小人,康熙字典,五格,合盤,姓名配對,免費算命,姓名學APP">
+    <meta property="og:title" content="找對的人 V7.1 — 姓名學合盤鑑定">
+    <meta property="og:description" content="輸入兩人姓名，10 秒鑑定對方是貴人還是小人！結合直覺結論與深度合盤分析。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://samlin0320-bee.github.io/find-the-right-one/v71.html">
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="找對的人">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: white; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .stroke-input { width: 40px; text-align: center; background: rgba(0,0,0,0.6); color: #fbbf24; border: 1px solid #4b5563; border-radius: 6px; font-weight: bold; }
+        .char-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block; }
+        .tag-simp { background: #ef4444; color: white; }
+        .tag-trad { background: #10b981; color: white; }
+        .tag-ext { background: #8b5cf6; color: white; box-shadow: 0 0 8px #8b5cf6; }
+        .tag-unknown { background: #6b7280; color: white; }
+        #fileInput { display: none; }
+        .loading-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .tag-rainbow { 
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #00b300, #0000ff, #8b5cf6, #ff0000);
+            background-size: 200% 200%; animation: rainbowBg 2s linear infinite;
+            color: white; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+        }
+        .rainbow-flash { animation: rainbowBorder 1.5s linear infinite; }
+        @keyframes rainbowBg { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        @keyframes rainbowBorder {
+            0% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            16% { border-color: #ff7f00; box-shadow: 0 0 10px #ff7f00; }
+            33% { border-color: #ffff00; box-shadow: 0 0 10px #ffff00; }
+            50% { border-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+            66% { border-color: #0000ff; box-shadow: 0 0 10px #0000ff; }
+            83% { border-color: #8b5cf6; box-shadow: 0 0 10px #8b5cf6; }
+            100% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+        }
+        .app-banner { background: linear-gradient(135deg, #1e40af, #7c3aed, #db2777); background-size: 200% 200%; animation: gradientShift 4s ease infinite; }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .scene-card { transition: all 0.3s ease; cursor: default; }
+        .scene-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(251, 191, 36, 0.15); }
+        .vs-text { background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        .btn-line { background: #06c755; }
+        .btn-line:hover { background: #05b34a; }
+        .btn-telegram { background: #0088cc; }
+        .btn-telegram:hover { background: #0077b5; }
+        .counter-bar { background: linear-gradient(135deg, rgba(30,64,175,0.3), rgba(124,58,237,0.2)); border: 1px solid rgba(255,255,255,0.08); }
+        .counter-num { background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .counter-pulse { animation: counterPulse 0.6s ease; }
+        @keyframes counterPulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        /* 結果卡片樣式 */
+        .result-noble { border-color: #eab308; background: linear-gradient(135deg, rgba(234,179,8,0.1), rgba(245,158,11,0.05)); }
+        .result-villain { border-color: #ef4444; background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.05)); }
+        .result-indirect { border-color: #8b5cf6; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(124,58,237,0.05)); }
+        .result-neutral { border-color: #6b7280; background: linear-gradient(135deg, rgba(107,114,128,0.1), rgba(75,85,99,0.05)); }
+        /* 緣分溫度計 */
+        .thermometer { width: 100%; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
+        .thermometer-fill { height: 100%; border-radius: 6px; transition: width 1.5s ease; }
+        /* 關係卡片動畫 */
+        .relation-card { animation: slideUp 0.5s ease forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        /* 生活化提示 */
+        .life-tip { background: rgba(251,191,36,0.08); border-left: 3px solid #fbbf24; padding: 8px 12px; border-radius: 0 8px 8px 0; margin-top: 8px; }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center">
+    <!-- ========== APP 預告橫幅 ========== -->
+    <div class="app-banner w-full max-w-md rounded-xl px-4 py-2.5 mb-4 text-center">
+        <div class="flex items-center justify-center gap-2">
+            <span class="text-lg">📱</span>
+            <span class="text-sm font-bold text-white">即將上架手機 APP — 敬請期待！</span>
+            <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full text-white">iOS / Android</span>
+        </div>
+    </div>
+    <!-- ========== Header ========== -->
+    <header class="w-full max-w-md flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 tracking-wider">找對的人</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-purple-400 font-bold tracking-widest">V7.1</span>
+                <span class="text-[10px] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full font-bold">合盤進化版</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="dbCount" class="text-xs bg-gray-800 px-2 py-1 rounded text-purple-400 font-mono">滿血版: 8.1萬字</span>
+            <button id="importBtn" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg transition flex items-center gap-1" disabled>
+                <span>✅</span> <span id="btnText">8.1萬字庫已載入</span>
+            </button>
+            <input type="file" id="fileInput" accept=".json" onchange="loadExternalDB(this)">
+        </div>
+    </header>
+    <!-- ========== 使用計數器 ========== -->
+    <div class="counter-bar w-full max-w-md rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="text-center">
+                <div class="text-[10px] text-gray-400 mb-0.5">🌍 全球鑑定次數</div>
+                <div id="globalCount" class="counter-num text-xl font-black">---</div>
+            </div>
+            <div class="w-px h-8 bg-gray-600"></div>
+            <div class="text-center">
+                <div class="text-[10px] text-gray-400 mb-0.5">📱 我的鑑定次數</div>
+                <div id="myCount" class="counter-num text-xl font-black">0</div>
+            </div>
+        </div>
+        <div class="text-right">
+            <div class="text-[10px] text-gray-500">今日鑑定</div>
+            <div id="todayCount" class="text-sm font-bold text-amber-400">0 次</div>
+        </div>
+    </div>
+    <!-- ========== 15 大適用場域 ========== -->
+    <div class="w-full max-w-md mb-4">
+        <div class="text-xs text-gray-400 mb-2 text-center font-bold tracking-wider">▼ 15 大適用場域 — 生活中的每個重要決定 ▼</div>
+        <div class="grid grid-cols-5 gap-1.5">
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="看病前先查一下醫生跟你合不合！">
+                <div class="text-xl mb-0.5">🏥</div><div class="text-[10px] text-gray-300 font-bold">看醫生</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="牙齒很重要，找對牙醫更重要！">
+                <div class="text-xl mb-0.5">🦷</div><div class="text-[10px] text-gray-300 font-bold">找牙醫</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="打官司前先看看律師是不是你的貴人">
+                <div class="text-xl mb-0.5">⚖️</div><div class="text-[10px] text-gray-300 font-bold">找律師</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="報稅記帳，找對會計師省大錢！">
+                <div class="text-xl mb-0.5">🧮</div><div class="text-[10px] text-gray-300 font-bold">找會計師</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="你的錢交給誰管？先鑑定一下！">
+                <div class="text-xl mb-0.5">💰</div><div class="text-[10px] text-gray-300 font-bold">找理專</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="房產過戶找對地政士很關鍵">
+                <div class="text-xl mb-0.5">🏛️</div><div class="text-[10px] text-gray-300 font-bold">找地政士</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="蓋房子裝潢，建築師跟你合嗎？">
+                <div class="text-xl mb-0.5">🏗️</div><div class="text-[10px] text-gray-300 font-bold">找建築師</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="面試前先看看老闆是貴人還是小人">
+                <div class="text-xl mb-0.5">👔</div><div class="text-[10px] text-gray-300 font-bold">找老闆</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="合租前先鑑定，避免室友變仇人">
+                <div class="text-xl mb-0.5">🏠</div><div class="text-[10px] text-gray-300 font-bold">找室友</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="投資理財，看看這檔股票跟你有沒有緣">
+                <div class="text-xl mb-0.5">📈</div><div class="text-[10px] text-gray-300 font-bold">找股票</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="買賣房屋，仲介是你的貴人嗎？">
+                <div class="text-xl mb-0.5">🏢</div><div class="text-[10px] text-gray-300 font-bold">找仲介</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="終身大事，找對的人最重要！">
+                <div class="text-xl mb-0.5">💍</div><div class="text-[10px] text-gray-300 font-bold">找伴侶</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="曖昧對象是對的人嗎？測一下就知道">
+                <div class="text-xl mb-0.5">❤️</div><div class="text-[10px] text-gray-300 font-bold">找男女友</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl" title="人生路上，找到對的導師事半功倍">
+                <div class="text-xl mb-0.5">🧘</div><div class="text-[10px] text-gray-300 font-bold">人生導師</div>
+            </div>
+            <div class="scene-card glass text-center py-2 px-0.5 rounded-xl bg-gradient-to-br from-purple-900/30 to-blue-900/30" title="更多場域持續新增中...">
+                <div class="text-xl mb-0.5">🔮</div><div class="text-[10px] text-amber-400 font-bold">更多場域</div>
+            </div>
+        </div>
+    </div>
+    <!-- ========== 1. 我是誰 (User A) ========== -->
+    <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-yellow-500">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-yellow-400 text-lg flex items-center">😎 我是誰 (A)</h3>
+            <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
+                <input type="checkbox" id="uDouble" class="mr-1 w-4 h-4 accent-yellow-500 rounded"> 複姓 (前兩字為姓)
+            </label>
+        </div>
+        <div class="relative mb-4">
+            <input type="text" id="uName" placeholder="測試輸入：歐陽菲菲 或 蕭育沛" 
+                   class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-yellow-500 focus:outline-none transition-colors"
+                   oninput="autoDetect('u')">
+        </div>
+        <div class="bg-gray-900/40 p-3 rounded-xl">
+            <div class="flex justify-center gap-3 flex-wrap" id="uStrokesArea"></div>
+        </div>
+        <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
+            <div>天<span id="uTian" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>人<span id="uRen" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>地<span id="uDi" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>外<span id="uWai" class="text-yellow-400 font-bold ml-1">?</span></div>
+            <div>總<span id="uZong" class="text-yellow-400 font-bold ml-1">?</span></div>
+        </div>
+        <div id="uPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
+    </div>
+    <!-- ========== 2. 對方是 (User B) ========== -->
+    <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-blue-500">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-blue-400 text-lg flex items-center">🎯 對方是 (B)</h3>
+            <label class="text-xs text-gray-300 flex items-center cursor-pointer select-none" title="若為歐陽、司馬等複姓請勾選">
+                <input type="checkbox" id="tDouble" class="mr-1 w-4 h-4 accent-blue-500 rounded"> 複姓 (前兩字為姓)
+            </label>
+        </div>
+        <div class="relative mb-4">
+            <input type="text" id="tName" placeholder="輸入姓名 (支援簡繁)" 
+                   class="w-full p-3 rounded-xl bg-gray-900/50 border border-gray-600 text-white font-bold text-center text-xl focus:border-blue-500 focus:outline-none transition-colors"
+                   oninput="autoDetect('t')">
+        </div>
+        <div class="bg-gray-900/40 p-3 rounded-xl">
+            <div class="flex justify-center gap-3 flex-wrap" id="tStrokesArea"></div>
+        </div>
+        <div class="mt-3 flex justify-between text-sm text-gray-300 px-2">
+            <div>天<span id="tTian" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>人<span id="tRen" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>地<span id="tDi" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>外<span id="tWai" class="text-blue-400 font-bold ml-1">?</span></div>
+            <div>總<span id="tZong" class="text-blue-400 font-bold ml-1">?</span></div>
+        </div>
+        <div id="tPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
+    </div>
+    <!-- ========== 鑑定按鈕 ========== -->
+    <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-6 flex justify-center items-center gap-2">
+        <span>🔍</span> 啟動合盤鑑定
+    </button>
+    <!-- ========== 結果區 ========== -->
+    <div id="resultArea" class="hidden w-full max-w-md animate-fade-in-up"></div>
+    <!-- ========== 教學影片區 ========== -->
+    <div class="w-full max-w-md mt-6 mb-6">
+        <div class="text-center mb-3">
+            <h3 class="text-lg font-bold text-amber-400 flex items-center justify-center gap-2">🎬 軟體教學影片</h3>
+            <p class="text-xs text-gray-400 mt-1">3 分鐘學會使用「找對的人」</p>
+        </div>
+        <div class="rounded-xl overflow-hidden" style="aspect-ratio: 16/9;">
+            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/lJhAd5wnHzs" title="找對的人教學影片" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+    <!-- ========== Footer ========== -->
+    <footer class="w-full max-w-md text-center py-6 border-t border-gray-800 mt-4">
+        <div class="text-xs text-gray-500">
+            <p>找對的人 V7.1 合盤進化版 | 康熙字典 8.1 萬字庫 | 15 大適用場域</p>
+            <p class="mt-1">📱 手機 APP 即將上架 iOS / Android</p>
+            <p class="mt-1">適用：醫生・牙醫・律師・會計師・理專・地政士・建築師・老闆・室友・股票・仲介・伴侶・男女友・人生導師</p>
+            <p class="mt-1 opacity-50">&copy; 2025-2026 找對的人 App. All rights reserved.</p>
+            <p class="mt-1 opacity-40 text-[10px]">📊 使用數據僅儲存於您的裝置，不會上傳至任何伺服器</p>
+        </div>
+    </footer>
+    <div id="shareCanvasArea" class="hidden"></div>
+    <script>
+        // ==================== 計數器系統 (來自 V6.5) ====================
+        const COUNTER_STORAGE_KEY = 'findTheRightOne_counter';
+        const GLOBAL_COUNTER_KEY = 'findTheRightOne_globalCount';
+
+        function getCounterData() {
+            try { const d = JSON.parse(localStorage.getItem(COUNTER_STORAGE_KEY)); return d || { total: 0, today: 0, date: new Date().toDateString() }; }
+            catch { return { total: 0, today: 0, date: new Date().toDateString() }; }
+        }
+        function saveCounterData(data) { localStorage.setItem(COUNTER_STORAGE_KEY, JSON.stringify(data)); }
+        function getGlobalCount() {
+            try { return parseInt(localStorage.getItem(GLOBAL_COUNTER_KEY)) || 88888; }
+            catch { return 88888; }
+        }
+        function saveGlobalCount(count) { localStorage.setItem(GLOBAL_COUNTER_KEY, count.toString()); }
+        function incrementCounter() {
+            const data = getCounterData();
+            const today = new Date().toDateString();
+            if (data.date !== today) { data.today = 0; data.date = today; }
+            data.total++; data.today++;
+            saveCounterData(data);
+            let globalCount = getGlobalCount(); globalCount++;
+            saveGlobalCount(globalCount);
+            updateCounterDisplay(data, globalCount);
+        }
+        function updateCounterDisplay(data, globalCount) {
+            const myCountEl = document.getElementById('myCount');
+            const globalCountEl = document.getElementById('globalCount');
+            const todayCountEl = document.getElementById('todayCount');
+            if (myCountEl) {
+                myCountEl.innerText = data.total;
+                myCountEl.classList.remove('counter-pulse');
+                void myCountEl.offsetWidth;
+                myCountEl.classList.add('counter-pulse');
+            }
+            if (todayCountEl) todayCountEl.innerText = data.today + ' 次';
+            if (globalCountEl) {
+                globalCountEl.innerText = globalCount.toLocaleString();
+                globalCountEl.classList.remove('counter-pulse');
+                void globalCountEl.offsetWidth;
+                globalCountEl.classList.add('counter-pulse');
+            }
+        }
+        function initCounter() {
+            const data = getCounterData();
+            const today = new Date().toDateString();
+            if (data.date !== today) { data.today = 0; data.date = today; saveCounterData(data); }
+            const globalCount = getGlobalCount();
+            updateCounterDisplay(data, globalCount);
+        }
+        initCounter();
+
+        // ==================== 字庫系統 ====================
+        let externalDB = {};
+        let dbLoaded = false;
+
+        function loadExternalDB(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    let count = 0;
+                    for (let ch in json) { externalDB[ch] = json[ch]; count++; }
+                    if (count > 0) {
+                        dbLoaded = true;
+                        const countStr = count > 10000 ? (count/10000).toFixed(1) + '萬' : count;
+                        document.getElementById('dbCount').innerText = '滿血版: ' + countStr + '字';
+                        document.getElementById('btnText').innerText = countStr + '字庫已載入';
+                        document.getElementById('importBtn').classList.remove('bg-purple-600');
+                        document.getElementById('importBtn').classList.add('bg-green-600');
+                    }
+                } catch(err) { alert('字庫格式錯誤: ' + err.message); }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== 字元辨識 ====================
+        function getCharInfo(char) {
+            if (externalDB[char]) {
+                const s = externalDB[char];
+                if (typeof s === 'object') return { stroke: s.stroke || s.s, source: s.source || s.src || 'ext' };
+                return { stroke: s, source: 'ext' };
+            }
+            return null;
+        }
+
+        function autoDetect(prefix) {
+            const nameInput = document.getElementById(prefix + 'Name');
+            const name = nameInput.value.trim();
+            const isDouble = document.getElementById(prefix + 'Double').checked;
+            const strokesArea = document.getElementById(prefix + 'StrokesArea');
+            strokesArea.innerHTML = '';
+            if (!name) { updatePreview(prefix); return; }
+            const chars = [...name];
+            chars.forEach((ch, i) => {
+                const info = getCharInfo(ch);
+                const div = document.createElement('div');
+                div.className = 'flex flex-col items-center';
+                const label = document.createElement('div');
+                label.className = 'text-gray-400 text-xs mb-1';
+                const surnameLen = isDouble ? 2 : 1;
+                label.innerText = i < surnameLen ? '姓' : '名' + (i - surnameLen + 1);
+                const input = document.createElement('input');
+                input.type = 'number'; input.className = 'stroke-input';
+                input.id = prefix + 'S_val_' + i;
+                input.placeholder = '?';
+                input.oninput = function() { updatePreview(prefix); };
+                if (info) { input.value = info.stroke; }
+                const charLabel = document.createElement('div');
+                charLabel.className = 'text-white text-sm font-bold mt-1';
+                charLabel.innerText = ch;
+                const tag = document.createElement('div');
+                if (info) {
+                    const src = info.source;
+                    if (src === 'trad' || src === '繁') { tag.className = 'char-tag tag-trad'; tag.innerText = '頂級庫'; }
+                    else if (src === 'simp' || src === '簡') { tag.className = 'char-tag tag-simp'; tag.innerText = '簡體庫'; }
+                    else if (src === 'ext' || src === '擴') { tag.className = 'char-tag tag-ext'; tag.innerText = '擴充庫'; }
+                    else if (src === 'rainbow' || src === '彩') { tag.className = 'char-tag tag-rainbow'; tag.innerText = '彩蛋庫'; }
+                    else { tag.className = 'char-tag tag-trad'; tag.innerText = '頂級庫'; }
+                } else { tag.className = 'char-tag tag-unknown'; tag.innerText = '手動'; }
+                div.appendChild(label); div.appendChild(charLabel); div.appendChild(input); div.appendChild(tag);
+                strokesArea.appendChild(div);
+            });
+            updatePreview(prefix);
+        }
+
+        function updatePreview(prefix) {
+            const name = document.getElementById(prefix + 'Name').value.trim();
+            const isDouble = document.getElementById(prefix + 'Double').checked;
+            const chars = [...name];
+            if (chars.length < 2) {
+                ['Tian','Ren','Di','Wai','Zong'].forEach(g => document.getElementById(prefix+g).innerText = '?');
+                const pol = document.getElementById(prefix + 'Polarity');
+                if (pol) pol.innerText = '';
+                return;
+            }
+            const strokes = chars.map((ch, i) => {
+                const el = document.getElementById(prefix + 'S_val_' + i);
+                return el ? parseInt(el.value) || 0 : 0;
+            });
+            const surnameLen = isDouble ? 2 : 1;
+            let surnameStroke = 0;
+            for (let i = 0; i < surnameLen && i < strokes.length; i++) surnameStroke += strokes[i];
+            let nameStroke = 0;
+            for (let i = surnameLen; i < strokes.length; i++) nameStroke += strokes[i];
+            const totalStroke = surnameStroke + nameStroke;
+            let tian, ren, di, wai, zong;
+            if (chars.length === 2 && !isDouble) {
+                tian = strokes[0] + 1; ren = strokes[0] + strokes[1]; di = strokes[1] + 1;
+                zong = totalStroke; wai = zong - ren + 1;
+            } else if (chars.length === 3 && !isDouble) {
+                tian = strokes[0] + 1; ren = strokes[0] + strokes[1]; di = strokes[1] + strokes[2];
+                zong = totalStroke; wai = zong - ren + 1;
+            } else if (chars.length === 3 && isDouble) {
+                tian = strokes[0] + strokes[1]; ren = strokes[1] + strokes[2]; di = strokes[2] + 1;
+                zong = totalStroke; wai = zong - ren + 1;
+            } else if (chars.length === 4 && isDouble) {
+                tian = strokes[0] + strokes[1]; ren = strokes[1] + strokes[2]; di = strokes[2] + strokes[3];
+                zong = totalStroke; wai = zong - ren + 1;
+            } else if (chars.length === 4 && !isDouble) {
+                tian = strokes[0] + 1; ren = strokes[0] + strokes[1]; di = strokes[1] + strokes[2] + strokes[3];
+                zong = totalStroke; wai = zong - ren + 1;
+            } else {
+                tian = surnameStroke + 1; ren = surnameStroke + strokes[surnameLen]; 
+                di = nameStroke + (chars.length <= surnameLen + 1 ? 1 : 0);
+                zong = totalStroke; wai = zong - ren + 1;
+            }
+            if (wai <= 0) wai = 1;
+            document.getElementById(prefix+'Tian').innerText = tian;
+            document.getElementById(prefix+'Ren').innerText = ren;
+            document.getElementById(prefix+'Di').innerText = di;
+            document.getElementById(prefix+'Wai').innerText = wai;
+            document.getElementById(prefix+'Zong').innerText = zong;
+            // 陰陽盤判定 (來自 V7.0)
+            const grids = [tian, ren, di, wai, zong];
+            const polarity = analyzePolarity(grids);
+            const polEl = document.getElementById(prefix + 'Polarity');
+            if (polEl) {
+                polEl.innerHTML = `<span class="text-emerald-400">✦ ${polarity.label}</span>：${polarity.desc}`;
+            }
+        }
+
+        function reduce(num) { let n = num; while (n > 10) n = n % 10 || 10; return n; }
+        function getHuaQi(number) { return reduce(number); }
+
+        // ==================== 陰陽盤判斷 (來自 V7.0) ====================
+        function analyzePolarity(grids) {
+            const oddCount = grids.filter(g => g % 2 !== 0).length;
+            const evenCount = grids.filter(g => g % 2 === 0).length;
+            if (oddCount === 5) return { label: '全陽盤', desc: '個性豪爽、直接、像哥們、女生帶男相' };
+            if (evenCount === 5) return { label: '全陰盤', desc: '個性細膩、溫柔、善解人意、男生帶女相' };
+            if (oddCount >= 4) return { label: '偏陽盤', desc: '外向主動、行動力強、有領導特質' };
+            if (evenCount >= 4) return { label: '偏陰盤', desc: '內斂穩重、善於觀察、適合幕後工作' };
+            return { label: '陰陽平衡', desc: '剛柔並濟、適應力強、人際關係圓融' };
+        }
+
+        // ==================== 合盤分析引擎 (來自 V7.0) ====================
+        function analyzeRelationship(userA, userB) {
+            const results = [];
+            // A 對 B 的貴人檢查
+            if (userA.ren === userB.di) {
+                results.push({ type: 'noble', level: 'direct', strength: '100x', icon: '👼', title: '直接貴人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>直接貴人</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren}) = ${userB.name} 的地格(${userB.di})，會主動幫忙、直接給資源。`,
+                    lifeTip: `💡 生活建議：${userB.name} 遇到困難時，可以主動向 ${userA.name} 請教，對方會很樂意幫忙！`
+                });
+            } else if (getHuaQi(userA.ren) === getHuaQi(userB.di)) {
+                results.push({ type: 'noble', level: 'indirect', strength: '50x', icon: '✨', title: '間接貴人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>間接貴人</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren})化氣${getHuaQi(userA.ren)} = ${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)}，會介紹資源，力量更強大。`,
+                    lifeTip: `💡 生活建議：${userA.name} 可能會透過朋友圈或人脈間接幫到 ${userB.name}，保持聯繫很重要！`
+                });
+            }
+            // B 對 A 的貴人檢查
+            if (userB.ren === userA.di) {
+                results.push({ type: 'noble', level: 'direct', strength: '100x', icon: '👼', title: '直接貴人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>直接貴人</b>`,
+                    detail: `${userB.name} 的人格(${userB.ren}) = ${userA.name} 的地格(${userA.di})，會主動幫忙、直接給資源。`,
+                    lifeTip: `💡 生活建議：${userA.name} 有好事記得分享給 ${userB.name}，互相扶持的緣分要珍惜！`
+                });
+            } else if (getHuaQi(userB.ren) === getHuaQi(userA.di)) {
+                results.push({ type: 'noble', level: 'indirect', strength: '50x', icon: '✨', title: '間接貴人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>間接貴人</b>`,
+                    detail: `${userB.name} 的人格(${userB.ren})化氣${getHuaQi(userB.ren)} = ${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)}，會介紹資源，力量更強大。`,
+                    lifeTip: `💡 生活建議：透過 ${userB.name} 的人脈，${userA.name} 可能會遇到意想不到的機會！`
+                });
+            }
+            // 小人檢查
+            if (userA.di === userB.zong) {
+                results.push({ type: 'villain', level: 'direct', strength: '100x', icon: '💣', title: '明小人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>明小人</b>`,
+                    detail: `${userA.name} 的地格(${userA.di}) = ${userB.name} 的總格(${userB.zong})，直接衝突、不給面子、拖累 ${userA.name}。`,
+                    lifeTip: `⚠️ 生活建議：與 ${userB.name} 合作時要特別小心，重要決定建議找第三方見證！`
+                });
+            } else if (getHuaQi(userA.di) === getHuaQi(userB.zong)) {
+                results.push({ type: 'villain', level: 'indirect', strength: '10x', icon: '👻', title: '暗小人',
+                    desc: `${userB.name} 是 ${userA.name} 的<b>暗小人</b>`,
+                    detail: `${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)} = ${userB.name} 的總格(${userB.zong})化氣${getHuaQi(userB.zong)}，無心之過、${userA.name} 要幫 ${userB.name} 擦屁股。`,
+                    lifeTip: `⚠️ 生活建議：${userB.name} 不是故意的，但容易無意間給 ${userA.name} 添麻煩，保持適當距離比較好。`
+                });
+            }
+            if (userB.di === userA.zong) {
+                results.push({ type: 'villain', level: 'direct', strength: '100x', icon: '💣', title: '明小人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>明小人</b>`,
+                    detail: `${userB.name} 的地格(${userB.di}) = ${userA.name} 的總格(${userA.zong})，直接衝突、不給面子、拖累 ${userB.name}。`,
+                    lifeTip: `⚠️ 生活建議：${userA.name} 要注意自己的言行，可能無意間傷害到 ${userB.name}！`
+                });
+            } else if (getHuaQi(userB.di) === getHuaQi(userA.zong)) {
+                results.push({ type: 'villain', level: 'indirect', strength: '10x', icon: '👻', title: '暗小人',
+                    desc: `${userA.name} 是 ${userB.name} 的<b>暗小人</b>`,
+                    detail: `${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)} = ${userA.name} 的總格(${userA.zong})化氣${getHuaQi(userA.zong)}，無心之過、${userB.name} 要幫 ${userA.name} 擦屁股。`,
+                    lifeTip: `⚠️ 生活建議：不是故意的，但容易無意間給對方添麻煩，合作前多溝通確認。`
+                });
+            }
+            // 平宮檢查
+            if (userA.ren === userB.ren) {
+                results.push({ type: 'neutral', level: 'equal', strength: '', icon: '🤝', title: '人格平宮',
+                    desc: `兩人<b>思維方式相似</b>`,
+                    detail: `${userA.name} 的人格(${userA.ren}) = ${userB.name} 的人格(${userB.ren})，想法接近、容易溝通。`,
+                    lifeTip: `💡 生活建議：你們想法很像，溝通起來很順暢，適合當朋友或合作夥伴！`
+                });
+            }
+            if (userA.di === userB.di) {
+                results.push({ type: 'neutral', level: 'equal', strength: '', icon: '💞', title: '地格平宮',
+                    desc: `兩人<b>感情觀/事業做法相近</b>`,
+                    detail: `${userA.name} 的地格(${userA.di}) = ${userB.name} 的地格(${userB.di})，感情觀一致、事業做法相近。`,
+                    lifeTip: `💡 生活建議：你們在感情和事業上的價值觀很接近，是很好的知己！`
+                });
+            }
+            if (userA.zong === userB.zong) {
+                results.push({ type: 'neutral', level: 'equal', strength: '', icon: '🎯', title: '總格平宮',
+                    desc: `兩人<b>人生目標相似</b>`,
+                    detail: `${userA.name} 的總格(${userA.zong}) = ${userB.name} 的總格(${userB.zong})，人生走向、最終目標相似。`,
+                    lifeTip: `💡 生活建議：你們的人生方向很接近，可以互相激勵、一起成長！`
+                });
+            }
+            return results;
+        }
+
+        // ==================== 生活化金句庫 ====================
+        const wisdomQuotes = [
+            '「人生最重要的不是你站在哪裡，而是你身邊站著誰。」',
+            '「遇到對的人，每天都是好日子。」',
+            '「知人知面不知心，但姓名學可以幫你多看一層。」',
+            '「貴人不一定是大人物，但一定是對的人。」',
+            '「避開小人不是膽小，是智慧。」',
+            '「緣分天注定，但選擇在你手中。」',
+            '「找對的人，做對的事，走對的路。」',
+            '「姓名是父母給的祝福，也是命運的密碼。」',
+            '「人與人之間的磁場，藏在名字的筆劃裡。」',
+            '「好的關係讓你事半功倍，壞的關係讓你寸步難行。」'
+        ];
+
+        // ==================== 鑑定主函數 ====================
+        function calculateAndScan() {
+            updatePreview('u'); updatePreview('t');
+            incrementCounter();
+
+            const uName = document.getElementById('uName').value.trim();
+            const tName = document.getElementById('tName').value.trim();
+            if (!uName || !tName) { alert('請輸入雙方姓名！'); return; }
+
+            const uRen = parseInt(document.getElementById('uRen').innerText);
+            const tRen = parseInt(document.getElementById('tRen').innerText);
+            if (isNaN(uRen) || isNaN(tRen)) { alert('請確保所有筆劃都已輸入正確喔！'); return; }
+
+            const uDi = parseInt(document.getElementById('uDi').innerText);
+            const uZong = parseInt(document.getElementById('uZong').innerText);
+            const uWai = parseInt(document.getElementById('uWai').innerText);
+            const uTian = parseInt(document.getElementById('uTian').innerText);
+            const tDi = parseInt(document.getElementById('tDi').innerText);
+            const tZong = parseInt(document.getElementById('tZong').innerText);
+            const tWai = parseInt(document.getElementById('tWai').innerText);
+            const tTian = parseInt(document.getElementById('tTian').innerText);
+
+            // V6.5 直覺結論
+            const uRenH = reduce(uRen), uDiH = reduce(uDi), uZongH = reduce(uZong);
+            const tRenH = reduce(tRen), tDiH = reduce(tDi), tZongH = reduce(tZong);
+            let quickResult = { type: 'normal', title: '泛泛之交', icon: '🍵', color: 'result-neutral', desc: '緣分平淡，無明顯生剋。保持正常社交即可。' };
+            if (tRen === uDi) { quickResult = { type: 'noble', title: '對方是對的人 (貴人)', icon: '👼', color: 'result-noble', desc: `恭喜！這是對的人。對方的思想(人格${tRen})直接拉拔你的基礎(地格${uDi})，是來成就你的。` }; }
+            else if (uRen === tDi) { quickResult = { type: 'noble', title: '你是對方的貴人', icon: '🤝', color: 'result-noble', desc: `你的格局(人格${uRen})在對方之上，你會想幫他。這是一段良善的緣分。` }; }
+            else if (tZong === uDi) { quickResult = { type: 'villain', title: '這不是對的人 (小人)', icon: '💣', color: 'result-villain', desc: `警報！這可能不是對的人。對方的結果(總格${tZong})會拖累你的基礎(地格${uDi})。` }; }
+            else if (uZong === tDi) { quickResult = { type: 'villain', title: '相處需謹慎 (小人)', icon: '⚠️', color: 'result-villain', desc: `你們氣場相剋，你可能會無意間拖累他。彼此相處會比較辛苦。` }; }
+            else if (tRenH === uDiH) { quickResult = { type: 'indirect_noble', title: '潛在的對的人', icon: '✨', color: 'result-indirect', desc: '雖然數字不同，但化氣相同。是潛力股，會暗中給你資源。' }; }
+            else if (uRenH === tDiH) { quickResult = { type: 'indirect_noble', title: '你是潛在貴人', icon: '✨', color: 'result-indirect', desc: '化氣相同，你會在不知不覺中幫助到他。' }; }
+            else if (tZongH === uDiH || uZongH === tDiH) { quickResult = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'result-neutral', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
+
+            // V7.0 合盤分析
+            const userA = { name: uName, tian: uTian, ren: uRen, di: uDi, wai: uWai, zong: uZong };
+            const userB = { name: tName, tian: tTian, ren: tRen, di: tDi, wai: tWai, zong: tZong };
+            const relationships = analyzeRelationship(userA, userB);
+            const polarityA = analyzePolarity([uTian, uRen, uDi, uWai, uZong]);
+            const polarityB = analyzePolarity([tTian, tRen, tDi, tWai, tZong]);
+
+            // 緣分溫度計算
+            let tempScore = 30; // 基礎分
+            relationships.forEach(r => {
+                if (r.type === 'noble' && r.level === 'direct') tempScore += 25;
+                else if (r.type === 'noble' && r.level === 'indirect') tempScore += 15;
+                else if (r.type === 'villain' && r.level === 'direct') tempScore -= 15;
+                else if (r.type === 'villain' && r.level === 'indirect') tempScore -= 8;
+                else if (r.type === 'neutral') tempScore += 10;
+            });
+            tempScore = Math.max(5, Math.min(100, tempScore));
+            const tempColor = tempScore >= 70 ? '#22c55e' : tempScore >= 40 ? '#eab308' : '#ef4444';
+            const tempLabel = tempScore >= 80 ? '🔥 超級有緣' : tempScore >= 60 ? '😊 緣分不錯' : tempScore >= 40 ? '😐 普通緣分' : '😰 需要注意';
+
+            // 隨機金句
+            const randomQuote = wisdomQuotes[Math.floor(Math.random() * wisdomQuotes.length)];
+
+            // 分享文字
+            const shareText = `【找對的人 V7.1 合盤鑑定報告】\n${uName} ↔ ${tName}\n直覺結論：${quickResult.title}\n${quickResult.desc}\n緣分指數：${tempScore}分\n\n🆓 免費測試（15大場域適用）：\nhttps://samlin0320-bee.github.io/find-the-right-one/v71.html\n\n📱 APP 即將上架！`;
+
+            // ==================== 渲染結果 ====================
+            const area = document.getElementById('resultArea');
+            let html = `<div id="captureTarget" class="bg-[#0f172a] rounded-2xl overflow-hidden">`;
+
+            // 第一區：直覺結論 (V6.5 風格)
+            html += `<div class="p-6 text-center border-t-4 ${quickResult.color}" style="border-radius: 16px 16px 0 0;">
+                <div class="mb-4">
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        <span class="text-2xl font-black text-yellow-400">${uName}</span>
+                        <span class="vs-text text-2xl font-black">VS</span>
+                        <span class="text-2xl font-black text-blue-400">${tName}</span>
+                    </div>
+                </div>
+                <div class="text-6xl mb-3 filter drop-shadow-lg">${quickResult.icon}</div>
+                <h2 class="text-2xl font-black mb-2 text-white">${quickResult.title}</h2>
+                <p class="text-gray-200 text-base leading-relaxed px-2">${quickResult.desc}</p>
+                
+                <!-- 緣分溫度計 -->
+                <div class="mt-4 px-4">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-400">緣分指數</span>
+                        <span class="text-sm font-bold" style="color:${tempColor}">${tempLabel} ${tempScore}分</span>
+                    </div>
+                    <div class="thermometer">
+                        <div class="thermometer-fill" style="width:${tempScore}%; background: linear-gradient(90deg, ${tempColor}, ${tempColor}88);"></div>
+                    </div>
+                </div>
+            </div>`;
+
+            // 第二區：合盤鑑定報告 (V7.0 風格)
+            html += `<div class="p-4">
+                <h2 class="text-xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-3">📊 合盤鑑定報告</h2>
+                <div class="text-center text-gray-400 text-sm mb-4">${uName} ↔ ${tName}</div>
+                
+                <!-- 五格對比表格 -->
+                <table class="w-full text-sm text-center mb-4">
+                    <thead><tr class="text-gray-400 text-xs">
+                        <th class="pb-2"></th><th class="pb-2">天格</th><th class="pb-2">人格</th><th class="pb-2">地格</th><th class="pb-2">外格</th><th class="pb-2">總格</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr class="text-yellow-400 font-bold"><td class="py-1 text-left text-xs">${uName}</td><td>${uTian}</td><td>${uRen}</td><td>${uDi}</td><td>${uWai}</td><td>${uZong}</td></tr>
+                        <tr class="text-blue-400 font-bold"><td class="py-1 text-left text-xs">${tName}</td><td>${tTian}</td><td>${tRen}</td><td>${tDi}</td><td>${tWai}</td><td>${tZong}</td></tr>
+                    </tbody>
+                </table>`;
+
+            // 陰陽盤顯示
+            html += `<div class="glass p-3 rounded-xl mb-4">
+                <div class="text-center font-bold text-emerald-400 mb-2">🔮 陰陽盤屬性</div>
+                <div class="text-sm text-gray-300">
+                    <div class="mb-1">✦ ${uName}：<span class="text-emerald-400 font-bold">${polarityA.label}</span> — ${polarityA.desc}</div>
+                    <div>✦ ${tName}：<span class="text-emerald-400 font-bold">${polarityB.label}</span> — ${polarityB.desc}</div>
+                </div>
+            </div>`;
+
+            // 關係結果卡片
+            if (relationships.length > 0) {
+                relationships.forEach((r, i) => {
+                    const cardClass = r.type === 'noble' ? 'result-noble' : r.type === 'villain' ? 'result-villain' : 'result-neutral';
+                    html += `<div class="relation-card glass p-4 rounded-xl mb-3 border-l-4 ${cardClass}" style="animation-delay: ${i * 0.15}s">
+                        <div class="flex items-start gap-3">
+                            <div class="text-3xl">${r.icon}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-bold text-white">${r.title}</span>
+                                    ${r.strength ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">${r.strength}</span>` : ''}
+                                </div>
+                                <div class="text-sm text-gray-300 mb-1">${r.desc}</div>
+                                <div class="text-xs text-gray-400">${r.detail}</div>
+                                <div class="life-tip text-xs text-amber-300 mt-2">${r.lifeTip}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<div class="glass p-4 rounded-xl mb-3 border-l-4 result-neutral text-center">
+                    <div class="text-3xl mb-2">🍵</div>
+                    <div class="font-bold text-lg text-white mb-1">泛泛之交</div>
+                    <div class="text-gray-400 text-sm">兩人之間無明顯貴人、小人或平宮關係，緣分平淡。</div>
+                    <div class="life-tip text-xs text-amber-300 mt-2">💡 生活建議：保持正常社交即可，不需要特別親近或疏遠。</div>
+                </div>`;
+            }
+
+            // 關係小語
+            html += `<div class="text-center mt-4 mb-2">
+                <div class="text-xs text-gray-500 italic">${randomQuote}</div>
+            </div>`;
+
+            // 水印
+            html += `<div class="mt-2 text-center text-[10px] text-gray-600 pb-2">@找對的人 V7.1 合盤進化版 — 姓名合盤分析 | 來源：姓名學數位化第三堂</div>`;
+            html += `</div></div>`;
+
+            // 分享按鈕區 (V6.5 風格)
+            html += `<div class="mt-4 grid grid-cols-2 gap-3">
+                <button onclick="shareToLine()" class="btn-line text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                    LINE 分享
+                </button>
+                <button onclick="shareToTelegram()" class="btn-telegram text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    Telegram 分享
+                </button>
+            </div>
+            <button onclick="shareResult()" class="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl text-sm shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95">
+                <span>📸</span> 儲存結果圖片分享給朋友
+            </button>`;
+
+            area.innerHTML = html;
+            area.classList.remove('hidden');
+            area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            window._shareText = shareText;
+            window._shareUrl = 'https://samlin0320-bee.github.io/find-the-right-one/v71.html';
+        }
+
+        // ==================== 分享功能 ====================
+        function shareToLine() {
+            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
+            window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
+        }
+        function shareToTelegram() {
+            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
+        }
+        function shareResult() {
+            const captureTarget = document.getElementById('captureTarget');
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span>⏳</span> 正在產生精美圖卡...';
+            btn.disabled = true;
+            html2canvas(captureTarget, { backgroundColor: '#0f172a', scale: 2 }).then(canvas => {
+                const imgUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imgUrl; link.download = '找對的人_V7.1_合盤報告.png';
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                btn.innerHTML = '<span>✅</span> 圖片已儲存！快去分享吧';
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+            }).catch(err => {
+                console.error('截圖失敗:', err);
+                alert('產生圖片失敗，請直接使用手機截圖功能。');
+                btn.innerHTML = originalText; btn.disabled = false;
+            });
+        }
+
+        // ==================== 自動載入字庫 ====================
+        (function autoLoadKangxiDB() {
+            const btnText = document.getElementById('btnText');
+            const importBtn = document.getElementById('importBtn');
+            const dbCount = document.getElementById('dbCount');
+            btnText.innerText = '載入中...';
+            importBtn.classList.add('loading-pulse');
+            fetch('kangxi_db.json')
+                .then(resp => { if (!resp.ok) throw new Error('字庫檔案不存在'); return resp.json(); })
+                .then(json => {
+                    let loadedCount = 0;
+                    for (let ch in json) { externalDB[ch] = json[ch]; loadedCount++; }
+                    if (loadedCount > 0) {
+                        dbLoaded = true;
+                        const countStr = loadedCount > 10000 ? (loadedCount/10000).toFixed(1) + '萬' : loadedCount;
+                        dbCount.innerText = '滿血版: ' + countStr + '字';
+                        dbCount.classList.add('text-purple-400');
+                        btnText.innerText = '8.1萬字庫已載入';
+                        importBtn.classList.remove('bg-purple-600', 'loading-pulse');
+                        importBtn.classList.add('bg-green-600');
+                    }
+                })
+                .catch(err => {
+                    btnText.innerText = '匯入8萬字庫';
+                    importBtn.classList.remove('loading-pulse');
+                    importBtn.disabled = false;
+                    importBtn.onclick = () => document.getElementById('fileInput').click();
+                });
+        })();
+
+        // Service Worker 註冊
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
