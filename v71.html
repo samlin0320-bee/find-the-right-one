@@ -325,8 +325,17 @@
             reader.readAsText(file);
         }
 
+        // ==================== 爭議字庫（雙筆劃）====================
+        const dualStrokesMap = {
+            '育': [9, 10], '卉': [5, 6], '妍': [8, 9], '屏': [10, 11],
+            '毓': [13, 14], '沛': [8, 9], '慈': [13, 14], '蕭': [18, 19]
+        };
         // ==================== 字元辨識 ====================
         function getCharInfo(char) {
+            // 優先檢查爭議字庫（雙筆劃），以較小值為預設
+            if (dualStrokesMap[char]) {
+                return { stroke: dualStrokesMap[char][0], source: 'dual', alt: dualStrokesMap[char][1] };
+            }
             if (externalDB[char]) {
                 const s = externalDB[char];
                 if (typeof s === 'object') return { stroke: s.stroke || s.s, source: s.source || s.src || 'ext' };
@@ -363,7 +372,12 @@
                 const tag = document.createElement('div');
                 if (info) {
                     const src = info.source;
-                    if (src === 'trad' || src === '繁') { tag.className = 'char-tag tag-trad'; tag.innerText = '頂級庫'; }
+                    if (src === 'dual') {
+                        tag.className = 'char-tag tag-rainbow';
+                        tag.innerText = `爭議(${info.stroke}或${info.alt})`;
+                        input.className = 'stroke-input rainbow-flash text-white';
+                    }
+                    else if (src === 'trad' || src === '繁') { tag.className = 'char-tag tag-trad'; tag.innerText = '頂級庫'; }
                     else if (src === 'simp' || src === '簡') { tag.className = 'char-tag tag-simp'; tag.innerText = '簡體庫'; }
                     else if (src === 'ext' || src === '擴') { tag.className = 'char-tag tag-ext'; tag.innerText = '擴充庫'; }
                     else if (src === 'rainbow' || src === '彩') { tag.className = 'char-tag tag-rainbow'; tag.innerText = '彩蛋庫'; }
