@@ -573,7 +573,15 @@
             }
         }
 
-        function reduce(num) { let n = num; while (n > 10) n = n % 10 || 10; return n; }
+        // 官方正確化氣算法：拆開相加直到個位數（姓名學數位化3.pdf 官方規則）
+        // 例如：15 → 1+5 = 6，25 → 2+5 = 7，24 → 2+4 = 6，10 → 1+0 = 1
+        function reduce(num) {
+            let n = num;
+            while (n > 9) {
+                n = String(n).split('').reduce((a, b) => a + parseInt(b), 0);
+            }
+            return n;
+        }
         function getHuaQi(number) { return reduce(number); }
 
         // ==================== 陰陽盤判斷 (來自 V7.0) ====================
