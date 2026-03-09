@@ -488,42 +488,45 @@
         // ==================== 合盤分析引擎 (來自 V7.0) ====================
         function analyzeRelationship(userA, userB) {
             const results = [];
-            // A 對 B 的貴人檢查
+            // A 對 B 的貴人檢查（直接與間接均獨立判斷，不互斥）
             if (userA.ren === userB.di) {
                 results.push({ type: 'noble', level: 'direct', strength: '1x', icon: '👼', title: '直接貴人',
                     desc: `${userA.name} 是 ${userB.name} 的<b>直接貴人</b>`,
                     detail: `${userA.name} 的人格(${userA.ren}) = ${userB.name} 的地格(${userB.di})，會主動幫忙、直接給資源。`,
                     lifeTip: `💡 生活建議：${userB.name} 遇到困難時，可以主動向 ${userA.name} 請教，對方會很樂意幫忙！`
                 });
-            } else if (getHuaQi(userA.ren) === getHuaQi(userB.di)) {
+            }
+            if (getHuaQi(userA.ren) === getHuaQi(userB.di)) {
                 results.push({ type: 'noble', level: 'indirect', strength: '10x', icon: '✨', title: '間接貴人',
                     desc: `${userA.name} 是 ${userB.name} 的<b>間接貴人</b>`,
                     detail: `${userA.name} 的人格(${userA.ren})化氣${getHuaQi(userA.ren)} = ${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)}，會介紹資源，力量更強大。`,
                     lifeTip: `💡 生活建議：${userA.name} 可能會透過朋友圈或人脈間接幫到 ${userB.name}，保持聯繫很重要！`
                 });
             }
-            // B 對 A 的貴人檢查
+            // B 對 A 的貴人檢查（直接與間接均獨立判斷，不互斥）
             if (userB.ren === userA.di) {
                 results.push({ type: 'noble', level: 'direct', strength: '1x', icon: '👼', title: '直接貴人',
                     desc: `${userB.name} 是 ${userA.name} 的<b>直接貴人</b>`,
                     detail: `${userB.name} 的人格(${userB.ren}) = ${userA.name} 的地格(${userA.di})，會主動幫忙、直接給資源。`,
                     lifeTip: `💡 生活建議：${userA.name} 有好事記得分享給 ${userB.name}，互相扶持的緣分要珍惜！`
                 });
-            } else if (getHuaQi(userB.ren) === getHuaQi(userA.di)) {
+            }
+            if (getHuaQi(userB.ren) === getHuaQi(userA.di)) {
                 results.push({ type: 'noble', level: 'indirect', strength: '10x', icon: '✨', title: '間接貴人',
                     desc: `${userB.name} 是 ${userA.name} 的<b>間接貴人</b>`,
                     detail: `${userB.name} 的人格(${userB.ren})化氣${getHuaQi(userB.ren)} = ${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)}，會介紹資源，力量更強大。`,
                     lifeTip: `💡 生活建議：透過 ${userB.name} 的人脈，${userA.name} 可能會遇到意想不到的機會！`
                 });
             }
-            // 小人檢查
+            // 小人檢查（明小人與暗小人均獨立判斷，不互斥）
             if (userA.di === userB.zong) {
                 results.push({ type: 'villain', level: 'direct', strength: '1x', icon: '💣', title: '明小人',
                     desc: `${userB.name} 是 ${userA.name} 的<b>明小人</b>`,
                     detail: `${userA.name} 的地格(${userA.di}) = ${userB.name} 的總格(${userB.zong})，直接衝突、不給面子、拖累 ${userA.name}。`,
                     lifeTip: `⚠️ 生活建議：與 ${userB.name} 合作時要特別小心，重要決定建議找第三方見證！`
                 });
-            } else if (getHuaQi(userA.di) === getHuaQi(userB.zong)) {
+            }
+            if (getHuaQi(userA.di) === getHuaQi(userB.zong)) {
                 results.push({ type: 'villain', level: 'indirect', strength: '10x', icon: '👻', title: '暗小人',
                     desc: `${userB.name} 是 ${userA.name} 的<b>暗小人</b>`,
                     detail: `${userA.name} 的地格(${userA.di})化氣${getHuaQi(userA.di)} = ${userB.name} 的總格(${userB.zong})化氣${getHuaQi(userB.zong)}，無心之過、${userA.name} 要幫 ${userB.name} 擦屁股。`,
@@ -536,7 +539,8 @@
                     detail: `${userB.name} 的地格(${userB.di}) = ${userA.name} 的總格(${userA.zong})，直接衝突、不給面子、拖累 ${userB.name}。`,
                     lifeTip: `⚠️ 生活建議：${userA.name} 要注意自己的言行，可能無意間傷害到 ${userB.name}！`
                 });
-            } else if (getHuaQi(userB.di) === getHuaQi(userA.zong)) {
+            }
+            if (getHuaQi(userB.di) === getHuaQi(userA.zong)) {
                 results.push({ type: 'villain', level: 'indirect', strength: '10x', icon: '👻', title: '暗小人',
                     desc: `${userA.name} 是 ${userB.name} 的<b>暗小人</b>`,
                     detail: `${userB.name} 的地格(${userB.di})化氣${getHuaQi(userB.di)} = ${userA.name} 的總格(${userA.zong})化氣${getHuaQi(userA.zong)}，無心之過、${userB.name} 要幫 ${userA.name} 擦屁股。`,
