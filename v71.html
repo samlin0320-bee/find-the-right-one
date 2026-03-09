@@ -249,33 +249,43 @@
     </footer>
     <div id="shareCanvasArea" class="hidden"></div>
     <script>
-        // ==================== 計數器系統 (來自 V6.5) ====================
+        // ==================== 計數器系統 (V7.1 — 真實全球雲端計數器) ====================
+        // 全球次數：串接 counterapi.dev 雲端 API，所有用戶共用真實數字
+        // 個人次數：儲存於本地 localStorage
         const COUNTER_STORAGE_KEY = 'findTheRightOne_counter';
-        const GLOBAL_COUNTER_KEY = 'findTheRightOne_globalCount';
+        const GLOBAL_API_HIT = 'https://api.counterapi.dev/v1/samlin0320-bee/find-the-right-one-v71/up';
+        const GLOBAL_API_GET = 'https://api.counterapi.dev/v1/samlin0320-bee/find-the-right-one-v71/';
 
         function getCounterData() {
             try { const d = JSON.parse(localStorage.getItem(COUNTER_STORAGE_KEY)); return d || { total: 0, today: 0, date: new Date().toDateString() }; }
             catch { return { total: 0, today: 0, date: new Date().toDateString() }; }
         }
         function saveCounterData(data) { localStorage.setItem(COUNTER_STORAGE_KEY, JSON.stringify(data)); }
-        function getGlobalCount() {
-            try { return parseInt(localStorage.getItem(GLOBAL_COUNTER_KEY)) || 88888; }
-            catch { return 88888; }
-        }
-        function saveGlobalCount(count) { localStorage.setItem(GLOBAL_COUNTER_KEY, count.toString()); }
+
         function incrementCounter() {
+            // 個人計數（本地）
             const data = getCounterData();
             const today = new Date().toDateString();
             if (data.date !== today) { data.today = 0; data.date = today; }
             data.total++; data.today++;
             saveCounterData(data);
-            let globalCount = getGlobalCount(); globalCount++;
-            saveGlobalCount(globalCount);
-            updateCounterDisplay(data, globalCount);
+            updateLocalDisplay(data);
+
+            // 全球計數（雲端 API）
+            fetch(GLOBAL_API_HIT)
+                .then(res => res.json())
+                .then(json => {
+                    updateGlobalDisplay(json.count);
+                })
+                .catch(() => {
+                    // API 失敗時顯示「---」
+                    const el = document.getElementById('globalCount');
+                    if (el) el.innerText = '---';
+                });
         }
-        function updateCounterDisplay(data, globalCount) {
+
+        function updateLocalDisplay(data) {
             const myCountEl = document.getElementById('myCount');
-            const globalCountEl = document.getElementById('globalCount');
             const todayCountEl = document.getElementById('todayCount');
             if (myCountEl) {
                 myCountEl.innerText = data.total;
@@ -284,19 +294,35 @@
                 myCountEl.classList.add('counter-pulse');
             }
             if (todayCountEl) todayCountEl.innerText = data.today + ' 次';
+        }
+
+        function updateGlobalDisplay(count) {
+            const globalCountEl = document.getElementById('globalCount');
             if (globalCountEl) {
-                globalCountEl.innerText = globalCount.toLocaleString();
+                globalCountEl.innerText = count.toLocaleString();
                 globalCountEl.classList.remove('counter-pulse');
                 void globalCountEl.offsetWidth;
                 globalCountEl.classList.add('counter-pulse');
             }
         }
+
         function initCounter() {
+            // 初始化個人計數
             const data = getCounterData();
             const today = new Date().toDateString();
             if (data.date !== today) { data.today = 0; data.date = today; saveCounterData(data); }
-            const globalCount = getGlobalCount();
-            updateCounterDisplay(data, globalCount);
+            updateLocalDisplay(data);
+
+            // 初始化全球計數（從雲端讀取，不累加）
+            fetch(GLOBAL_API_GET)
+                .then(res => res.json())
+                .then(json => {
+                    updateGlobalDisplay(json.count);
+                })
+                .catch(() => {
+                    const el = document.getElementById('globalCount');
+                    if (el) el.innerText = '---';
+                });
         }
         initCounter();
 
