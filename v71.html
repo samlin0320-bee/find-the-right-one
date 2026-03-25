@@ -195,6 +195,7 @@
             <div>總<span id="uZong" class="text-yellow-400 font-bold ml-1">?</span></div>
         </div>
         <div id="uPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
+        <div id="uWuXing" class="mt-2 text-center"></div>
     </div>
     <!-- ========== 2. 對方是 (User B) ========== -->
     <div class="glass w-full max-w-md p-5 mb-4 relative border-l-4 border-blue-500">
@@ -220,6 +221,7 @@
             <div>總<span id="tZong" class="text-blue-400 font-bold ml-1">?</span></div>
         </div>
         <div id="tPolarity" class="mt-2 text-center text-xs text-gray-500"></div>
+        <div id="tWuXing" class="mt-2 text-center"></div>
     </div>
     <!-- ========== 鑑定按鈕 ========== -->
     <button onclick="calculateAndScan()" class="w-full max-w-md bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-yellow-500/20 active:scale-95 transition-all mb-6 flex justify-center items-center gap-2">
@@ -505,11 +507,21 @@
                 }
             }
             if (wai <= 0) wai = 1;
-            document.getElementById(prefix+'Tian').innerText = tian;
-            document.getElementById(prefix+'Ren').innerText = ren;
-            document.getElementById(prefix+'Di').innerText = di;
-            document.getElementById(prefix+'Wai').innerText = wai;
-            document.getElementById(prefix+'Zong').innerText = zong;
+            document.getElementById(prefix+'Tian').innerHTML = tian + getWuXingLabel(tian);
+            document.getElementById(prefix+'Ren').innerHTML = ren + getWuXingLabel(ren);
+            document.getElementById(prefix+'Di').innerHTML = di + getWuXingLabel(di);
+            document.getElementById(prefix+'Wai').innerHTML = wai + getWuXingLabel(wai);
+            document.getElementById(prefix+'Zong').innerHTML = zong + getWuXingLabel(zong);
+            // 五行俱全判定
+            const wuxingComplete = checkWuXingComplete([tian, ren, di, wai, zong]);
+            const wuxingEl = document.getElementById(prefix + 'WuXing');
+            if (wuxingEl) {
+                if (wuxingComplete) {
+                    wuxingEl.innerHTML = '<span class="tag-rainbow" style="padding:2px 8px;border-radius:4px;font-size:12px;">🌟 五行俱全 100分（如為貴人，可發揮100分貴人之力）</span>';
+                } else {
+                    wuxingEl.innerHTML = '';
+                }
+            }
             // 陰陽盤判定 (來自 V7.0)
             const grids = [tian, ren, di, wai, zong];
             const polarity = analyzePolarity(grids);
@@ -517,6 +529,25 @@
             if (polEl) {
                 polEl.innerHTML = `<span class="text-emerald-400">✦ ${polarity.label}</span>：${polarity.desc}`;
             }
+        }
+
+        // ==================== 五行轉換（尾數法）====================
+        function getWuXing(num) {
+            const tail = num % 10;
+            if (tail === 1 || tail === 2) return { name: '木', color: '#22c55e' };
+            if (tail === 3 || tail === 4) return { name: '火', color: '#ef4444' };
+            if (tail === 5 || tail === 6) return { name: '土', color: '#eab308' };
+            if (tail === 7 || tail === 8) return { name: '金', color: '#f59e0b' };
+            return { name: '水', color: '#3b82f6' };
+        }
+        function getWuXingLabel(num) {
+            const wx = getWuXing(num);
+            return `<span style="color:${wx.color};font-weight:bold">${wx.name}</span>`;
+        }
+        // 檢查五行俱全
+        function checkWuXingComplete(grids) {
+            const elements = new Set(grids.map(g => getWuXing(g).name));
+            return elements.size === 5;
         }
 
         // 官方正確化氣算法：拆開相加直到個位數（姓名學數位化3.pdf 官方規則）
@@ -668,13 +699,15 @@
             const uRenH = reduce(uRen), uDiH = reduce(uDi), uZongH = reduce(uZong);
             const tRenH = reduce(tRen), tDiH = reduce(tDi), tZongH = reduce(tZong);
             let quickResult = { type: 'normal', title: '泛泛之交', icon: '🍵', color: 'result-neutral', desc: '緣分平淡，無明顯生剋。保持正常社交即可。' };
-            if (tRen === uDi) { quickResult = { type: 'noble', title: '對方是對的人 (貴人)', icon: '👼', color: 'result-noble', desc: `恭喜！這是對的人。對方的思想(人格${tRen})直接拉拔你的基礎(地格${uDi})，是來成就你的。` }; }
-            else if (uRen === tDi) { quickResult = { type: 'noble', title: '你是對方的貴人', icon: '🤝', color: 'result-noble', desc: `你的格局(人格${uRen})在對方之上，你會想幫他。這是一段良善的緣分。` }; }
-            else if (tZong === uDi) { quickResult = { type: 'villain', title: '這不是對的人 (小人)', icon: '💣', color: 'result-villain', desc: `警報！這可能不是對的人。對方的結果(總格${tZong})會拖累你的基礎(地格${uDi})。` }; }
-            else if (uZong === tDi) { quickResult = { type: 'villain', title: '相處需謹慎 (小人)', icon: '⚠️', color: 'result-villain', desc: `你們氣場相剋，你可能會無意間拖累他。彼此相處會比較辛苦。` }; }
-            else if (tRenH === uDiH) { quickResult = { type: 'indirect_noble', title: '潛在的對的人', icon: '✨', color: 'result-indirect', desc: '雖然數字不同，但化氣相同。是潛力股，會暗中給你資源。' }; }
-            else if (uRenH === tDiH) { quickResult = { type: 'indirect_noble', title: '你是潛在貴人', icon: '✨', color: 'result-indirect', desc: '化氣相同，你會在不知不覺中幫助到他。' }; }
-            else if (tZongH === uDiH || uZongH === tDiH) { quickResult = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'result-neutral', desc: '這段關係可能比較累，成事不足敗事有餘，容易互相干擾。' }; }
+            if (tRen === uDi) { quickResult = { type: 'noble', title: '對方是對的人 (直接貴人)', icon: '👼', color: 'result-noble', desc: `姓名上看來 ${tName} 是 ${uName} 的直接貴人。對方的思想(人格${tRen})直接拉拔你的基礎(地格${uDi})，是來成就你的。` }; }
+            else if (uRen === tDi) { quickResult = { type: 'noble', title: '你是對方的直接貴人', icon: '🤝', color: 'result-noble', desc: `姓名上看來 ${uName} 是 ${tName} 的直接貴人。你的格局(人格${uRen})在對方之上，你會想幫他。這是一段良善的緣分。` }; }
+            else if (tZong === uDi) { quickResult = { type: 'villain', title: '這不是對的人 (明小人)', icon: '💣', color: 'result-villain', desc: `姓名上看來 ${tName} 是 ${uName} 的明小人。對方的結果(總格${tZong})會拖累你的基礎(地格${uDi})。` }; }
+            else if (uZong === tDi) { quickResult = { type: 'villain', title: '相處需謹慎 (明小人)', icon: '⚠️', color: 'result-villain', desc: `姓名上看來 ${uName} 是 ${tName} 的明小人。你們氣場相剘，你可能會無意間拖累他。彼此相處會比較辛苦。` }; }
+            else if (tRenH === uDiH) { quickResult = { type: 'indirect_noble', title: '潛在的對的人 (間接貴人)', icon: '✨', color: 'result-indirect', desc: `姓名上看來 ${tName} 是 ${uName} 的間接貴人。雖然數字不同，但化氣相同。是潛力股，會暗中給你資源。` }; }
+            else if (uRenH === tDiH) { quickResult = { type: 'indirect_noble', title: '你是潛在貴人 (間接貴人)', icon: '✨', color: 'result-indirect', desc: `姓名上看來 ${uName} 是 ${tName} 的間接貴人。化氣相同，你會在不知不覺中幫助到他。` }; }
+            else if (tZongH === uDiH && uZongH === tDiH) { quickResult = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'result-neutral', desc: `姓名上看來 ${tName} 是 ${uName} 的暗小人，同時 ${uName} 也是 ${tName} 的暗小人。這段關係可能比較累，容易互相干擾。` }; }
+            else if (tZongH === uDiH) { quickResult = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'result-neutral', desc: `姓名上看來 ${tName} 是 ${uName} 的暗小人，這段關係可能比較累，成事不足敗事有餘。` }; }
+            else if (uZongH === tDiH) { quickResult = { type: 'indirect_villain', title: '隱性負擔', icon: '👻', color: 'result-neutral', desc: `姓名上看來 ${uName} 是 ${tName} 的暗小人，這段關係可能比較累，容易互相干擾。` }; }
 
             // V7.0 合盤分析
             const userA = { name: uName, tian: uTian, ren: uRen, di: uDi, wai: uWai, zong: uZong };
@@ -736,16 +769,30 @@
                 <h2 class="text-xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-3">📊 合盤鑑定報告</h2>
                 <div class="text-center text-gray-400 text-sm mb-4">${uName} ↔ ${tName}</div>
                 
-                <!-- 五格對比表格 -->
+                <!-- 五格對比表格（含五行） -->
                 <table class="w-full text-sm text-center mb-4">
                     <thead><tr class="text-gray-400 text-xs">
                         <th class="pb-2"></th><th class="pb-2">天格</th><th class="pb-2">人格</th><th class="pb-2">地格</th><th class="pb-2">外格</th><th class="pb-2">總格</th>
                     </tr></thead>
                     <tbody>
-                        <tr class="text-yellow-400 font-bold"><td class="py-1 text-left text-xs">${uName}</td><td>${uTian}</td><td>${uRen}</td><td>${uDi}</td><td>${uWai}</td><td>${uZong}</td></tr>
-                        <tr class="text-blue-400 font-bold"><td class="py-1 text-left text-xs">${tName}</td><td>${tTian}</td><td>${tRen}</td><td>${tDi}</td><td>${tWai}</td><td>${tZong}</td></tr>
+                        <tr class="text-yellow-400 font-bold"><td class="py-1 text-left text-xs">${uName}</td><td>${uTian}${getWuXingLabel(uTian)}</td><td>${uRen}${getWuXingLabel(uRen)}</td><td>${uDi}${getWuXingLabel(uDi)}</td><td>${uWai}${getWuXingLabel(uWai)}</td><td>${uZong}${getWuXingLabel(uZong)}</td></tr>
+                        <tr class="text-blue-400 font-bold"><td class="py-1 text-left text-xs">${tName}</td><td>${tTian}${getWuXingLabel(tTian)}</td><td>${tRen}${getWuXingLabel(tRen)}</td><td>${tDi}${getWuXingLabel(tDi)}</td><td>${tWai}${getWuXingLabel(tWai)}</td><td>${tZong}${getWuXingLabel(tZong)}</td></tr>
                     </tbody>
                 </table>`;
+
+            // 合盤報告中的五行俱全判定
+            const uWuxingComplete = checkWuXingComplete([uTian, uRen, uDi, uWai, uZong]);
+            const tWuxingComplete = checkWuXingComplete([tTian, tRen, tDi, tWai, tZong]);
+            if (uWuxingComplete || tWuxingComplete) {
+                html += `<div class="glass p-3 rounded-xl mb-4 text-center">`;
+                if (uWuxingComplete) {
+                    html += `<div class="mb-1"><span class="tag-rainbow" style="padding:2px 8px;border-radius:4px;font-size:12px;">🌟 ${uName} 五行俱全 100分（如為貴人，可發揮100分貴人之力）</span></div>`;
+                }
+                if (tWuxingComplete) {
+                    html += `<div><span class="tag-rainbow" style="padding:2px 8px;border-radius:4px;font-size:12px;">🌟 ${tName} 五行俱全 100分（如為貴人，可發揮100分貴人之力）</span></div>`;
+                }
+                html += `</div>`;
+            }
 
             // 陰陽盤顯示
             html += `<div class="glass p-3 rounded-xl mb-4">
