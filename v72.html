@@ -693,14 +693,13 @@
 
         // ==================== V7.2 緣分指數計分引擎 ====================
         // 設計準則（皆來自姓名學數位化第三堂）：
-        //   1. 貴人/小人「化氣（間接）」力量為「實數（直接）」的 10 倍
-        //      → 計分上以 2:1 權重反映（不是字面 10 倍，避免單一條件壓垮其他維度）
+        //   1. 貴人/小人「直接（實數相等）」力量大於「間接（化氣相等）」
+        //      → 沿用 V7.1 的 25:15 / 15:8 比例方向（直接：立即性強、間接：影響較淡）
         //   2. 同格平宮中：總格 > 人格 ≈ 地格 > 外格 ≈ 天格
         //   3. 五行俱全者為貴人時可發揮 100% 力量 → 對該方向的貴人加成
         //   4. 陰陽盤雙方皆平衡為上品；極端對立(全陽 vs 全陰)拖累緣分
         //   5. 雙向互為貴人為「合盤上吉」，互為小人為「上凶」
-        // 修掉 V7.1 的問題：
-        //   - 直接/間接強度顛倒（V7.1 直接 +25 > 間接 +15，違反 10 倍規則）
+        // 修掉 V7.1 的問題（保留 V7.1 對的部分）：
         //   - 三平宮加總 +30 蓋過單一直接貴人（V7.1 +25），權重失衡
         //   - 五行俱全與陰陽盤完全沒進計分
         //   - 無雙向互動加成、底分 30 偏低、下限 5 / 上限 100 不對稱
@@ -723,9 +722,9 @@
             const bIndVillain = getHuaQi(userB.zong) === getHuaQi(userA.di);
 
             const addNoble = (isAtoB, isIndirect) => {
-                const base = isIndirect ? 18 : 9; // 間接(化氣)權重高
+                const base = isIndirect ? 15 : 25; // 直接 > 間接（沿用 V7.1）
                 const wuxingBoost = (isAtoB && aWuxingComplete) || (!isAtoB && bWuxingComplete);
-                const bonus = wuxingBoost ? (isIndirect ? 7 : 5) : 0;
+                const bonus = wuxingBoost ? (isIndirect ? 5 : 8) : 0;
                 const points = base + bonus;
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
@@ -736,7 +735,7 @@
             };
 
             const addVillain = (isAtoB, isIndirect) => {
-                const points = isIndirect ? 18 : 9; // 暗小人(化氣)殺傷力較大
+                const points = isIndirect ? 8 : 15; // 直接 > 間接（沿用 V7.1）
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
                 const tag  = isIndirect ? '暗小人(化氣)' : '明小人';
@@ -927,7 +926,7 @@
                                 <span class="text-amber-400">合計（已限制 1～100）</span>
                                 <span class="text-amber-400 font-mono">${tempScore}</span>
                             </div>
-                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：五格(同格平宮) + 化氣(間接判斷, 力量×10) + 五行俱全(個人平衡度) + 陰陽盤(剛柔調性)。來源：姓名學數位化第三堂。</div>
+                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：五格平宮(同格相同) + 直接/間接貴人小人(直接力量大於間接) + 五行俱全(個人平衡度) + 陰陽盤(剛柔調性)。來源：姓名學數位化第三堂。</div>
                         </div>
                     </details>
                 </div>
