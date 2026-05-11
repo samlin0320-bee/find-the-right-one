@@ -692,17 +692,18 @@
         }
 
         // ==================== V7.2 緣分指數計分引擎 ====================
-        // 設計準則（皆來自姓名學數位化第三堂）：
-        //   1. 貴人/小人「直接（實數相等）」力量大於「間接（化氣相等）」
-        //      → 沿用 V7.1 的 25:15 / 15:8 比例方向（直接：立即性強、間接：影響較淡）
-        //   2. 同格平宮中：總格 > 人格 ≈ 地格 > 外格 ≈ 天格
-        //   3. 五行俱全者為貴人時可發揮 100% 力量 → 對該方向的貴人加成
-        //   4. 陰陽盤雙方皆平衡為上品；極端對立(全陽 vs 全陰)拖累緣分
-        //   5. 雙向互為貴人為「合盤上吉」，互為小人為「上凶」
-        // 修掉 V7.1 的問題（保留 V7.1 對的部分）：
-        //   - 三平宮加總 +30 蓋過單一直接貴人（V7.1 +25），權重失衡
-        //   - 五行俱全與陰陽盤完全沒進計分
-        //   - 無雙向互動加成、底分 30 偏低、下限 5 / 上限 100 不對稱
+        // 設計準則（來源：姓名學數位化第三堂課程逐字稿 + xlsm 雙人查詢表）：
+        //   1. 貴人／小人「間接（化氣相等）」力量是「直接（實數相等）」的十倍
+        //      課程原話：「間接貴人的力量是直接貴人的十倍」
+        //      → 計分上以約 2:1 反映（不字面取十倍以免單一條件壓垮其他維度）
+        //   2. 護貴人：雙向都成立「間接貴人」線 → 課程「兩條就超強」，額外加成
+        //   3. 平宮判斷只看 人格／地格／總格 三個（課程明確：天格不看、外格不看）
+        //      - 人格平宮 → 思維／個性相近
+        //      - 地格平宮 → 感情／事業觀相近
+        //      - 總格平宮 → 人生目標一致（最重要）
+        //   4. 五行俱全者為貴人時可發揮 100% 力量 → 對該方向的貴人加成
+        //   5. 陰陽盤雙方皆平衡為上品；極端對立（全陽 vs 全陰）拖累緣分
+        //   6. 雙向互為貴人為「合盤上吉」，互為小人為「上凶」
         function calculateAffinityScore(userA, userB, polarityA, polarityB) {
             let score = 50; // 中性基礎分
             const lines = [];
@@ -712,6 +713,7 @@
             const bWuxingComplete = checkWuXingComplete([userB.tian, userB.ren, userB.di, userB.wai, userB.zong]);
 
             // -- 1. 貴人 / 小人（從五格直接判定，方向清楚） --
+            // 課程：貴人看 人格 vs 地格；小人看 地格 vs 總格；天格不看
             const aDirNoble  = userA.ren === userB.di;
             const aIndNoble  = getHuaQi(userA.ren) === getHuaQi(userB.di);
             const bDirNoble  = userB.ren === userA.di;
@@ -722,28 +724,28 @@
             const bIndVillain = getHuaQi(userB.zong) === getHuaQi(userA.di);
 
             const addNoble = (isAtoB, isIndirect) => {
-                const base = isIndirect ? 15 : 25; // 直接 > 間接（沿用 V7.1）
+                const base = isIndirect ? 20 : 10; // 間接 > 直接（課程：十倍力量）
                 const wuxingBoost = (isAtoB && aWuxingComplete) || (!isAtoB && bWuxingComplete);
-                const bonus = wuxingBoost ? (isIndirect ? 5 : 8) : 0;
+                const bonus = wuxingBoost ? (isIndirect ? 10 : 5) : 0;
                 const points = base + bonus;
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
-                const tag  = isIndirect ? '間接貴人(化氣)' : '直接貴人';
+                const tag  = isIndirect ? '間接貴人（化氣・力量更強）' : '直接貴人';
                 const note = wuxingBoost ? '・五行俱全加成' : '';
                 score += points;
                 lines.push({ label: `${subj} 是 ${obj} 的 ${tag}${note}`, points: `+${points}` });
             };
 
             const addVillain = (isAtoB, isIndirect) => {
-                const points = isIndirect ? 8 : 15; // 直接 > 間接（沿用 V7.1）
+                const points = isIndirect ? 20 : 10; // 間接 > 直接（課程：十倍）
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
-                const tag  = isIndirect ? '暗小人(化氣)' : '明小人';
+                const tag  = isIndirect ? '暗小人（化氣・殺傷更深）' : '明小人';
                 score -= points;
                 lines.push({ label: `${subj} 是 ${obj} 的 ${tag}`, points: `−${points}` });
             };
 
-            // 純直接 vs 純間接 — 化氣相同但實數不同才算純間接，避免重複計分
+            // 純直接 vs 純間接：實數相同時化氣必然相同，用 else if 避免重複計分
             if (aDirNoble) addNoble(true, false);
             else if (aIndNoble) addNoble(true, true);
             if (bDirNoble) addNoble(false, false);
@@ -767,12 +769,16 @@
                 lines.push({ label: '雙向互為小人（合盤上凶）', points: '−6' });
             }
 
-            // -- 2. 平宮（同格相同，權重不同） --
+            // 護貴人：雙向都成立「間接貴人」線（課程：「兩條就超強」）
+            if (aIndNoble && bIndNoble) {
+                score += 10;
+                lines.push({ label: '雙向間接貴人（護貴人・超強緣分）', points: '+10' });
+            }
+
+            // -- 2. 平宮（同格相同）— 課程明確：只看人／地／總，不看天／外 --
             const equalRules = [
-                { name: '天格平宮（家庭觀相近）', a: userA.tian, b: userB.tian, w: 3 },
                 { name: '人格平宮（思維／個性相近）', a: userA.ren, b: userB.ren, w: 6 },
-                { name: '地格平宮（感情／事業觀相近）', a: userA.di, b: userB.di, w: 6 },
-                { name: '外格平宮（人際社交圈相近）', a: userA.wai, b: userB.wai, w: 3 },
+                { name: '地格平宮(感情／事業觀相近)', a: userA.di, b: userB.di, w: 6 },
                 { name: '總格平宮（人生終極目標一致）', a: userA.zong, b: userB.zong, w: 8 }
             ];
             equalRules.forEach(rule => {
@@ -782,7 +788,7 @@
                 }
             });
 
-            // -- 3. 五行俱全（個人平衡度） --
+            // -- 3. 五行俱全（個人平衡度，課程：「有五行俱全不怕小人」） --
             if (aWuxingComplete && bWuxingComplete) {
                 score += 8;
                 lines.push({ label: '雙方皆五行俱全（上品平衡）', points: '+8' });
@@ -794,7 +800,7 @@
                 lines.push({ label: `${userB.name} 五行俱全（自身平衡）`, points: '+4' });
             }
 
-            // -- 4. 陰陽盤調性 --
+            // -- 4. 陰陽盤調性（課程：看五格的奇偶分佈） --
             const aLab = polarityA.label, bLab = polarityB.label;
             const isExtreme = l => l === '全陽盤' || l === '全陰盤';
             if (aLab === '陰陽平衡' && bLab === '陰陽平衡') {
@@ -926,7 +932,7 @@
                                 <span class="text-amber-400">合計（已限制 1～100）</span>
                                 <span class="text-amber-400 font-mono">${tempScore}</span>
                             </div>
-                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：五格平宮(同格相同) + 直接/間接貴人小人(直接力量大於間接) + 五行俱全(個人平衡度) + 陰陽盤(剛柔調性)。來源：姓名學數位化第三堂。</div>
+                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：人／地／總格平宮（天格與外格不看）＋ 直接／間接貴人小人（間接化氣力量為直接的十倍）＋ 護貴人（雙向間接）＋ 五行俱全 ＋ 陰陽盤。來源：姓名學數位化第三堂課程逐字稿 + xlsm 雙人查詢表規則。</div>
                         </div>
                     </details>
                 </div>
