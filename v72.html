@@ -692,20 +692,17 @@
         }
 
         // ==================== V7.2 緣分指數計分引擎 ====================
-        // 設計準則（來源：姓名學數位化第三堂課程逐字稿 + xlsm 雙人查詢表）：
-        //   1. 貴人／小人「間接（化氣相等）」力量是「直接（實數相等）」的十倍
-        //      課程原話：「間接貴人的力量是直接貴人的十倍」
-        //      → 計分上以約 2:1 反映（不字面取十倍以免單一條件壓垮其他維度）
-        //   2. 護貴人：雙向都成立「間接貴人」線 → 課程「兩條就超強」，額外加成
-        //   3. 平宮判斷只看 人格／地格／總格 三個（課程明確：天格不看、外格不看）
-        //      - 人格平宮 → 思維／個性相近
-        //      - 地格平宮 → 感情／事業觀相近
-        //      - 總格平宮 → 人生目標一致（最重要）
-        //   4. 五行俱全者為貴人時可發揮 100% 力量 → 對該方向的貴人加成
-        //   5. 陰陽盤雙方皆平衡為上品；極端對立（全陽 vs 全陰）拖累緣分
-        //   6. 雙向互為貴人為「合盤上吉」，互為小人為「上凶」
+        // 設計準則（依使用者最新決定）：
+        //   1. 直接貴人 > 間接貴人（使用者判斷：直接給資源比轉介更具個案感受）
+        //      直接貴人 +20、間接貴人 +12（沿用 V7.1 25:15 方向）
+        //   2. 直接小人 > 暗小人（同樣方向，明小人 −15、暗小人 −8）
+        //   3. 平宮判斷只看 人格／地格／總格（課程明確：天格／外格不看）
+        //   4. 五行俱全只在「為貴人時」加成（不獨立給分）
+        //      雙方都五行俱全才給 +4（罕見格局加成）
+        //   5. 陰陽盤只在「極端對立」時扣分，不獨立加分（避免泛泛分數膨脹）
+        //   6. 護貴人（雙向純間接貴人）+8，且必須雙方都非直接才算
         function calculateAffinityScore(userA, userB, polarityA, polarityB) {
-            let score = 50; // 中性基礎分
+            let score = 40; // 中性基礎分（V7.2 第三版調整）
             const lines = [];
 
             // 個人五行俱全狀態
@@ -724,23 +721,23 @@
             const bIndVillain = getHuaQi(userB.zong) === getHuaQi(userA.di);
 
             const addNoble = (isAtoB, isIndirect) => {
-                const base = isIndirect ? 20 : 10; // 間接 > 直接（課程：十倍力量）
+                const base = isIndirect ? 12 : 20; // 直接 > 間接（使用者最新決定）
                 const wuxingBoost = (isAtoB && aWuxingComplete) || (!isAtoB && bWuxingComplete);
-                const bonus = wuxingBoost ? (isIndirect ? 10 : 5) : 0;
+                const bonus = wuxingBoost ? 5 : 0;
                 const points = base + bonus;
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
-                const tag  = isIndirect ? '間接貴人（化氣・力量更強）' : '直接貴人';
+                const tag  = isIndirect ? '間接貴人（化氣）' : '直接貴人';
                 const note = wuxingBoost ? '・五行俱全加成' : '';
                 score += points;
                 lines.push({ label: `${subj} 是 ${obj} 的 ${tag}${note}`, points: `+${points}` });
             };
 
             const addVillain = (isAtoB, isIndirect) => {
-                const points = isIndirect ? 20 : 10; // 間接 > 直接（課程：十倍）
+                const points = isIndirect ? 8 : 15; // 直接小人傷害大於暗小人
                 const subj = isAtoB ? userA.name : userB.name;
                 const obj  = isAtoB ? userB.name : userA.name;
-                const tag  = isIndirect ? '暗小人（化氣・殺傷更深）' : '明小人';
+                const tag  = isIndirect ? '暗小人（化氣）' : '明小人';
                 score -= points;
                 lines.push({ label: `${subj} 是 ${obj} 的 ${tag}`, points: `−${points}` });
             };
@@ -769,16 +766,16 @@
                 lines.push({ label: '雙向互為小人（合盤上凶）', points: '−6' });
             }
 
-            // 護貴人：雙向都成立「間接貴人」線（課程：「兩條就超強」）
-            if (aIndNoble && bIndNoble) {
-                score += 10;
-                lines.push({ label: '雙向間接貴人（護貴人・超強緣分）', points: '+10' });
+            // 護貴人：雙向都是「純間接」貴人線（雙方都不是直接）才算
+            if (aIndNoble && bIndNoble && !aDirNoble && !bDirNoble) {
+                score += 8;
+                lines.push({ label: '雙向純間接貴人（護貴人）', points: '+8' });
             }
 
             // -- 2. 平宮（同格相同）— 課程明確：只看人／地／總，不看天／外 --
             const equalRules = [
                 { name: '人格平宮（思維／個性相近）', a: userA.ren, b: userB.ren, w: 6 },
-                { name: '地格平宮(感情／事業觀相近)', a: userA.di, b: userB.di, w: 6 },
+                { name: '地格平宮（感情／事業觀相近）', a: userA.di, b: userB.di, w: 6 },
                 { name: '總格平宮（人生終極目標一致）', a: userA.zong, b: userB.zong, w: 8 }
             ];
             equalRules.forEach(rule => {
@@ -788,41 +785,28 @@
                 }
             });
 
-            // -- 3. 五行俱全（個人平衡度，課程：「有五行俱全不怕小人」） --
+            // -- 3. 五行俱全：個人單方不獨立加分；雙方俱全才給 +4 罕見格局 --
             if (aWuxingComplete && bWuxingComplete) {
-                score += 8;
-                lines.push({ label: '雙方皆五行俱全（上品平衡）', points: '+8' });
-            } else if (aWuxingComplete) {
                 score += 4;
-                lines.push({ label: `${userA.name} 五行俱全（自身平衡）`, points: '+4' });
-            } else if (bWuxingComplete) {
-                score += 4;
-                lines.push({ label: `${userB.name} 五行俱全（自身平衡）`, points: '+4' });
+                lines.push({ label: '雙方皆五行俱全（罕見格局）', points: '+4' });
             }
 
-            // -- 4. 陰陽盤調性（課程：看五格的奇偶分佈） --
+            // -- 4. 陰陽盤：只扣極端對立，不獨立加分 --
             const aLab = polarityA.label, bLab = polarityB.label;
-            const isExtreme = l => l === '全陽盤' || l === '全陰盤';
-            if (aLab === '陰陽平衡' && bLab === '陰陽平衡') {
-                score += 4;
-                lines.push({ label: '雙方陰陽平衡（剛柔並濟）', points: '+4' });
-            } else if (aLab === bLab && isExtreme(aLab)) {
-                score += 2;
-                lines.push({ label: `同為${aLab}（調性相近）`, points: '+2' });
-            } else if ((aLab === '全陽盤' && bLab === '全陰盤') || (aLab === '全陰盤' && bLab === '全陽盤')) {
-                score -= 3;
-                lines.push({ label: '陰陽盤極端對立（剛柔衝突）', points: '−3' });
+            if ((aLab === '全陽盤' && bLab === '全陰盤') || (aLab === '全陰盤' && bLab === '全陽盤')) {
+                score -= 2;
+                lines.push({ label: '陰陽盤極端對立（剛柔衝突）', points: '−2' });
             }
 
             // 限制範圍 + 取整
             score = Math.max(1, Math.min(100, Math.round(score)));
 
             let tier;
-            if (score >= 90)      tier = { label: '🔥 天作之合', color: '#ec4899' };
-            else if (score >= 75) tier = { label: '😍 命中註定的好緣', color: '#22c55e' };
-            else if (score >= 60) tier = { label: '😊 緣分不錯', color: '#84cc16' };
-            else if (score >= 45) tier = { label: '😐 普通緣分', color: '#eab308' };
-            else if (score >= 30) tier = { label: '😰 需要磨合', color: '#f97316' };
+            if (score >= 85)      tier = { label: '🔥 天作之合', color: '#ec4899' };
+            else if (score >= 70) tier = { label: '😍 命中註定的好緣', color: '#22c55e' };
+            else if (score >= 55) tier = { label: '😊 緣分不錯', color: '#84cc16' };
+            else if (score >= 40) tier = { label: '😐 普通緣分', color: '#eab308' };
+            else if (score >= 25) tier = { label: '😰 需要磨合', color: '#f97316' };
             else                  tier = { label: '⚠️ 緣分淺淡', color: '#ef4444' };
 
             return { score, tier, lines };
@@ -926,13 +910,13 @@
                     <details class="mt-3 text-left bg-black/20 rounded-lg px-3 py-2 border border-white/5">
                         <summary class="text-[11px] text-gray-300 cursor-pointer select-none">▼ 計分明細（公開透明，免費也用得明白）</summary>
                         <div class="mt-2 text-[11px] space-y-1">
-                            <div class="flex justify-between text-gray-300"><span>基礎分（中性起點）</span><span class="font-mono text-gray-400">+50</span></div>
+                            <div class="flex justify-between text-gray-300"><span>基礎分（中性起點）</span><span class="font-mono text-gray-400">+40</span></div>
                             ${affinity.lines.map(l => `<div class="flex justify-between"><span class="text-gray-200">${l.label}</span><span class="font-mono ${l.points.startsWith('−') ? 'text-red-300' : 'text-emerald-300'}">${l.points}</span></div>`).join('')}
                             <div class="border-t border-gray-600/50 mt-1 pt-1 flex justify-between font-bold">
                                 <span class="text-amber-400">合計（已限制 1～100）</span>
                                 <span class="text-amber-400 font-mono">${tempScore}</span>
                             </div>
-                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：人／地／總格平宮（天格與外格不看）＋ 直接／間接貴人小人（間接化氣力量為直接的十倍）＋ 護貴人（雙向間接）＋ 五行俱全 ＋ 陰陽盤。來源：姓名學數位化第三堂課程逐字稿 + xlsm 雙人查詢表規則。</div>
+                            <div class="text-[10px] text-gray-500 mt-2 leading-snug">演算法：人／地／總格平宮（天格與外格不看）＋ 直接／間接貴人小人（直接力量大於間接化氣）＋ 護貴人（雙向純間接）＋ 雙方五行俱全 ＋ 陰陽盤對立扣分。基礎分 40，範圍 1〜100。</div>
                         </div>
                     </details>
                 </div>
@@ -1008,6 +992,19 @@
             // 關係小語
             html += `<div class="text-center mt-4 mb-2">
                 <div class="text-xs text-gray-500 italic">${randomQuote}</div>
+            </div>`;
+
+            // 心念解讀（前世今生因果觀，不必害怕貴人小人）
+            html += `<div class="glass p-4 rounded-xl mb-3 border-l-4" style="border-color:#a78bfa">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">🪷</span>
+                    <span class="font-bold text-base text-purple-300">心念解讀</span>
+                </div>
+                <div class="text-xs text-gray-300 leading-relaxed space-y-1.5">
+                    <div>• <b class="text-yellow-300">貴人</b>是前世欠你的人，這輩子來還債、來成就你 — 感恩，把握。</div>
+                    <div>• <b class="text-red-300">小人</b>是你前世欠他的人，這輩子要償還、要修這段功課 — 不必害怕，當作修行。</div>
+                    <div class="text-gray-400 text-[11px] mt-2">已經在身邊的重要的人，用正面態度面對；該還的就還，該修的就修。緣分沒有絕對的好壞，只有怎麼對待。</div>
+                </div>
             </div>`;
 
             // 水印
