@@ -745,15 +745,18 @@
                 lines.push({ label: `${subj} 是 ${obj} 的 ${tag}`, points: `−${points}` });
             };
 
-            // 純直接 vs 純間接：實數相同時化氣必然相同，用 else if 避免重複計分
+            // 直接 / 間接 為獨立概念維度，課程「獨立判斷、不互斥」：
+            //   直接 = 實數相同（同一格直接連結）
+            //   間接 = 化氣相同（轉介、力量更強）
+            // 兩者同時成立時兩條都列入計分（與關係分析顯示一致，亦對應教學 Excel 兩條都出）
             if (aDirNoble) addNoble(true, false);
-            else if (aIndNoble) addNoble(true, true);
+            if (aIndNoble) addNoble(true, true);
             if (bDirNoble) addNoble(false, false);
-            else if (bIndNoble) addNoble(false, true);
+            if (bIndNoble) addNoble(false, true);
             if (aDirVillain) addVillain(true, false);
-            else if (aIndVillain) addVillain(true, true);
+            if (aIndVillain) addVillain(true, true);
             if (bDirVillain) addVillain(false, false);
-            else if (bIndVillain) addVillain(false, true);
+            if (bIndVillain) addVillain(false, true);
 
             // 雙向互為貴人 / 互為小人 加成
             const aIsNoble = aDirNoble || aIndNoble;
