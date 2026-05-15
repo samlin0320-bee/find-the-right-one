@@ -64,6 +64,26 @@ def five_grids_3char(s1: int, s2: int, s3: int) -> dict[str, int]:
     return dict(tian=tian, ren=ren, di=di, wai=wai, zong=zong)
 
 
+def five_grids_4char_single(s1: int, s2: int, s3: int, s4: int) -> dict[str, int]:
+    """4 字單姓三名的五格計算（v72.html 第 512-514 行）"""
+    zong = s1 + s2 + s3 + s4
+    tian = s1 + 1
+    ren = s1 + s2
+    di = s2 + s3 + s4
+    wai = zong - ren + 1
+    return dict(tian=tian, ren=ren, di=di, wai=wai, zong=zong)
+
+
+def five_grids_4char_double(s1: int, s2: int, s3: int, s4: int) -> dict[str, int]:
+    """4 字複姓雙名的五格計算（v72.html 第 508-511 行）— 數學上無法 100 分"""
+    zong = s1 + s2 + s3 + s4
+    tian = s1 + s2
+    ren = s2 + s3
+    di = s3 + s4
+    wai = s1 + s4
+    return dict(tian=tian, ren=ren, di=di, wai=wai, zong=zong)
+
+
 def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list[str]]:
     """忠實複製 v72.html calculateAffinityScore"""
     score = 40
@@ -148,9 +168,11 @@ VERSION_A = dict(name='李佳穎-A', tian=9, ren=16, di=24, wai=17, zong=32)
 VERSION_B = dict(name='李佳穎-B', tian=7, ren=14, di=26, wai=19, zong=32)
 
 
-def render(parts: tuple[str, str, str], target: dict, target_pol: str, db: dict) -> int:
+def render(parts, target: dict, target_pol: str, db: dict, grid_fn=None) -> int:
     s = [db[c] for c in parts]
-    g = five_grids_3char(*s)
+    if grid_fn is None:
+        grid_fn = five_grids_3char if len(s) == 3 else five_grids_4char_single
+    g = grid_fn(*s)
     name = ''.join(parts)
     b = dict(name=name, **g)
     pol_b = analyze_polarity([b[k] for k in ('tian', 'ren', 'di', 'wai', 'zong')])
@@ -158,7 +180,8 @@ def render(parts: tuple[str, str, str], target: dict, target_pol: str, db: dict)
     complete = check_wuxing_complete([g[k] for k in ('tian', 'ren', 'di', 'wai', 'zong')])
 
     print(f'\n  公司：{name}')
-    print(f'    筆劃：{parts[0]}={s[0]}  {parts[1]}={s[1]}  {parts[2]}={s[2]}')
+    stroke_line = '  '.join(f'{c}={s[i]}' for i, c in enumerate(parts))
+    print(f'    筆劃：{stroke_line}')
     print(f'    五格：天{g["tian"]:>2}({get_wuxing(g["tian"])}) '
           f'人{g["ren"]:>2}({get_wuxing(g["ren"])}) '
           f'地{g["di"]:>2}({get_wuxing(g["di"])}) '
@@ -177,27 +200,40 @@ def main() -> int:
     pol_a = analyze_polarity([VERSION_A[k] for k in ('tian', 'ren', 'di', 'wai', 'zong')])
     pol_b = analyze_polarity([VERSION_B[k] for k in ('tian', 'ren', 'di', 'wai', 'zong')])
 
-    picks_a = [('學', '沛', '和'), ('錦', '東', '昕'), ('璇', '宜', '青')]
-    picks_b = [('鎮', '和', '宇'), ('蕭', '青', '旭'), ('豐', '昕', '吉')]
+    picks_a3 = [('學', '沛', '和'), ('錦', '東', '昕'), ('璇', '宜', '青')]
+    picks_b3 = [('鎮', '和', '宇'), ('蕭', '青', '旭'), ('豐', '昕', '吉')]
+    picks_a4 = [('學', '沛', '公', '仁'), ('錦', '東', '允', '心'), ('璇', '宜', '元', '方')]
+    picks_b4 = [('鎮', '和', '心', '力'), ('蕭', '青', '文', '丁'), ('豐', '昕', '仁', '乃')]
 
     print('=' * 60)
     print('Version A — 對手「李佳穎」筆劃 8/8/16')
     print(f'  五格：天9(水) 人16(土) 地24(火) 外17(金) 總32(木)  {pol_a}')
-    print('  公司結構：16-8-8 三字單姓')
     print('=' * 60)
+    print('\n[3 字單姓：16-8-8]')
     all_ok = True
-    for p in picks_a:
+    for p in picks_a3:
         if render(p, VERSION_A, pol_a, db) != 100:
+            all_ok = False
+    print('\n[4 字單姓三名：16-8-(s3+s4=8)]')
+    for p in picks_a4:
+        if render(p, VERSION_A, pol_a, db, five_grids_4char_single) != 100:
             all_ok = False
 
     print('\n' + '=' * 60)
     print('Version B — 對手「李佳穎」筆劃 6/8/18')
     print(f'  五格：天7(金) 人14(火) 地26(土) 外19(水) 總32(木)  {pol_b}')
-    print('  公司結構：18-8-6 三字單姓')
     print('=' * 60)
-    for p in picks_b:
+    print('\n[3 字單姓：18-8-6]')
+    for p in picks_b3:
         if render(p, VERSION_B, pol_b, db) != 100:
             all_ok = False
+    print('\n[4 字單姓三名：18-8-(s3+s4=6)]')
+    for p in picks_b4:
+        if render(p, VERSION_B, pol_b, db, five_grids_4char_single) != 100:
+            all_ok = False
+
+    print('\n注意：4 字 + 勾複姓（複姓雙名）排盤下，tian/wai 鎖死為 (16, 8)（Version A）')
+    print('       或 (18, 6)（Version B），導致 B 五行缺水，最高僅 99 分，無法達 100。')
 
     print('\n' + '=' * 60)
     print(f'結果：{"全 6 組達 100 分 ✅" if all_ok else "有未達 100 ❌"}')
