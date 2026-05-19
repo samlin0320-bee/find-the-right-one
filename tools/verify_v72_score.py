@@ -3,7 +3,8 @@
 v72.html calculateAffinityScore 的 Python 對照實作。
 
 用途：離線批次驗證／搜尋符合條件的公司名（或對應字組合）。
-邏輯與 v72.html 第 704–812 行的 JavaScript 計分函式一致。
+邏輯與 v72.html 第 707–821 行的 JavaScript 計分函式一致
+（對齊 commit 290b0ac「直接 + 間接 同時計分」之後的版本）。
 
 使用方式：
     python3 tools/verify_v72_score.py
@@ -45,6 +46,7 @@ def reduce_num(n: int) -> int:
 
 
 def analyze_polarity(grids: list[int]) -> str:
+    """對齊 v72.html L597–604 analyzePolarity"""
     odd = sum(1 for g in grids if g % 2)
     even = 5 - odd
     if odd == 5: return '全陽盤'
@@ -85,8 +87,8 @@ def five_grids_4char_double(s1: int, s2: int, s3: int, s4: int) -> dict[str, int
 
 
 def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list[str]]:
-    """忠實複製 v72.html calculateAffinityScore"""
-    score = 40
+    """忠實複製 v72.html calculateAffinityScore（L707–821）"""
+    score = 50  # 中性基礎分
     lines: list[str] = []
 
     a_complete = check_wuxing_complete([A[k] for k in ('tian', 'ren', 'di', 'wai', 'zong')])
@@ -103,9 +105,10 @@ def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list
 
     def add_noble(is_a_to_b: bool, is_indirect: bool):
         nonlocal score
-        base = 12 if is_indirect else 20
+        base = 20 if is_indirect else 10  # 間接 > 直接（課程：十倍力量）
         wb = (is_a_to_b and a_complete) or ((not is_a_to_b) and b_complete)
-        pts = base + (5 if wb else 0)
+        bonus = (10 if is_indirect else 5) if wb else 0
+        pts = base + bonus
         score += pts
         tag = '間接貴人' if is_indirect else '直接貴人'
         note = '・五行俱全加成' if wb else ''
@@ -114,20 +117,21 @@ def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list
 
     def add_villain(is_a_to_b: bool, is_indirect: bool):
         nonlocal score
-        pts = 8 if is_indirect else 15
+        pts = 20 if is_indirect else 10  # 間接 > 直接
         score -= pts
         tag = '暗小人' if is_indirect else '明小人'
         subj, obj = ('A', 'B') if is_a_to_b else ('B', 'A')
         lines.append(f'{subj}→{obj} {tag} -{pts}')
 
+    # 直接 / 間接 為獨立維度，同時成立時兩條都列入計分（v72.html commit 290b0ac）
     if a_dir_noble: add_noble(True, False)
-    elif a_ind_noble: add_noble(True, True)
+    if a_ind_noble: add_noble(True, True)
     if b_dir_noble: add_noble(False, False)
-    elif b_ind_noble: add_noble(False, True)
+    if b_ind_noble: add_noble(False, True)
     if a_dir_vill: add_villain(True, False)
-    elif a_ind_vill: add_villain(True, True)
+    if a_ind_vill: add_villain(True, True)
     if b_dir_vill: add_villain(False, False)
-    elif b_ind_vill: add_villain(False, True)
+    if b_ind_vill: add_villain(False, True)
 
     a_is_noble = a_dir_noble or a_ind_noble
     b_is_noble = b_dir_noble or b_ind_noble
@@ -137,8 +141,9 @@ def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list
         score += 6; lines.append('雙向互為貴人 +6')
     if a_is_vill and b_is_vill:
         score -= 6; lines.append('雙向互為小人 -6')
-    if a_ind_noble and b_ind_noble and not a_dir_noble and not b_dir_noble:
-        score += 8; lines.append('護貴人 +8')
+    # 護貴人：雙向都成立「間接貴人」線
+    if a_ind_noble and b_ind_noble:
+        score += 10; lines.append('雙向間接貴人（護貴人）+10')
 
     if A['ren'] == B['ren']:
         score += 6; lines.append('人格平宮 +6')
@@ -148,10 +153,19 @@ def calc_score(A: dict, B: dict, pol_a: str, pol_b: str) -> tuple[int, int, list
         score += 8; lines.append('總格平宮 +8')
 
     if a_complete and b_complete:
-        score += 4; lines.append('雙方五行俱全 +4')
+        score += 8; lines.append('雙方五行俱全 +8')
+    elif a_complete:
+        score += 4; lines.append('A 方五行俱全 +4')
+    elif b_complete:
+        score += 4; lines.append('B 方五行俱全 +4')
 
-    if (pol_a == '全陽盤' and pol_b == '全陰盤') or (pol_a == '全陰盤' and pol_b == '全陽盤'):
-        score -= 2; lines.append('陰陽極端對立 -2')
+    is_extreme = lambda l: l in ('全陽盤', '全陰盤')
+    if pol_a == '陰陽平衡' and pol_b == '陰陽平衡':
+        score += 4; lines.append('雙方陰陽平衡 +4')
+    elif pol_a == pol_b and is_extreme(pol_a):
+        score += 2; lines.append(f'同為{pol_a}（調性相近）+2')
+    elif (pol_a == '全陽盤' and pol_b == '全陰盤') or (pol_a == '全陰盤' and pol_b == '全陽盤'):
+        score -= 3; lines.append('陰陽極端對立 -3')
 
     raw = score
     capped = max(1, min(100, round(score)))
@@ -188,7 +202,7 @@ def render(parts, target: dict, target_pol: str, db: dict, grid_fn=None) -> int:
           f'外{g["wai"]:>2}({get_wuxing(g["wai"])}) '
           f'總{g["zong"]:>2}({get_wuxing(g["zong"])})')
     print(f'    陰陽：{pol_b}    五行俱全：{"✓" if complete else "✗"}')
-    print(f'    計分（base 40）：')
+    print(f'    計分（base 50）：')
     for line in lines:
         print(f'      • {line}')
     print(f'    raw={raw} → cap → {score} 分  {"✅" if score == 100 else "❌"}')
