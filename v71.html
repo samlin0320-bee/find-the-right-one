@@ -764,8 +764,10 @@
             // 隨機金句
             const randomQuote = wisdomQuotes[Math.floor(Math.random() * wisdomQuotes.length)];
 
-            // 分享文字
-            const shareText = `【找對的人 V7.1 合盤鑑定報告】\n${uName} ↔ ${tName}\n直覺結論：${quickResult.title}\n${quickResult.desc}\n緣分指數：${tempScore}分\n\n🆓 免費測試（15大場域適用）：\nhttps://samlin0320-bee.github.io/find-the-right-one/v71.html\n\n📱 APP 即將上架！`;
+            // 分享文字：shareBody 為純結果內文（不含連結，給 Telegram 用，避免連結重複）
+            // shareText 為完整版（結果 + 連結，給 LINE 與複製分享用）
+            const shareBody = `【找對的人 V7.1 合盤鑑定報告】\n${uName} ↔ ${tName}\n直覺結論：${quickResult.title}\n${quickResult.desc}\n緣分指數：${tempScore}分\n\n📱 APP 即將上架！`;
+            const shareText = `${shareBody}\n\n🆓 免費測試（15大場域適用）：\nhttps://samlin0320-bee.github.io/find-the-right-one/v71.html`;
 
             // ==================== 渲染結果 ====================
             const area = document.getElementById('resultArea');
@@ -892,17 +894,22 @@
             area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             window._shareText = shareText;
+            window._shareBody = shareBody;
             window._shareUrl = 'https://samlin0320-bee.github.io/find-the-right-one/v71.html';
         }
 
         // ==================== 分享功能 ====================
+        // 注意：LINE 的 social-plugins.line.me/lineit/share 只支援 url 參數、text 會被丟棄，
+        // 導致分享出去只剩連結（看起來像空的）。改用 line.me/R/share 以文字完整帶出鑑定結果。
         function shareToLine() {
-            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
-            window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
+            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！\nhttps://samlin0320-bee.github.io/find-the-right-one/v71.html';
+            window.open(`https://line.me/R/share?text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
         }
         function shareToTelegram() {
-            const text = window._shareText || '快來試試「找對的人」姓名學分析工具！';
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(window._shareUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
+            // Telegram 訊息 = url 參數的連結 + text 內文；text 用不含連結的 shareBody 避免連結出現兩次
+            const text = window._shareBody || '快來試試「找對的人」姓名學分析工具！';
+            const url = window._shareUrl || 'https://samlin0320-bee.github.io/find-the-right-one/v71.html';
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank', 'width=500,height=600');
         }
         function shareResult() {
             const captureTarget = document.getElementById('captureTarget');
